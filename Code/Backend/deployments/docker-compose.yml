@@ -1,0 +1,9 @@
+version: "2"
+services:
+    app:
+        container_name: flask_API_endpoint
+        build:
+            context: ../
+            dockerfile: deployments/app/Dockerfile
+        ports:
+            - "5000:5000"
