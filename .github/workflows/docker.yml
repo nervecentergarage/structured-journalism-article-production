@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Build docker container for article production
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
@@ -21,7 +21,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-          
+      
+      # Runs the docker build
+      - name: docker login
+        env:
+          DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+          DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
+        run: |
+          docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD
+
       # Runs the docker build
       - name: docker build
         run: |
