@@ -25,7 +25,7 @@ jobs:
       # Runs the docker build
       - name: docker build
         run: |
-          docker build ./Code/Backend/deployment/app -t articleProduction
+          docker build ./Code/Backend/deployment/app -t articleproduction
           
       # Push the new image
       - name: docker push
