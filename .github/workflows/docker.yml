@@ -37,14 +37,14 @@ jobs:
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
-          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
+          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/worker
           
       # Push the new image
       - name: docker push
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
-          docker push registry.heroku.com/$HEROKU_APP_NAME/web
+          docker push registry.heroku.com/$HEROKU_APP_NAME/worker
           
         # Release the new Heroku conatiner
       - name: heroku container release
@@ -54,6 +54,6 @@ jobs:
           HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
         run: |
           heroku container:login
-          heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
+          heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} worker
         
 
