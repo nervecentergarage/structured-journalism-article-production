@@ -2,7 +2,7 @@ version: "2"
 services:
     flask_api_endpoint:
         container_name: flask_api_endpoint
-        image: article_production_flask/api/1.0.0
+        image: articleproduction/api:1.0.0
         build:
             context: ./
             dockerfile: Dockerfile
