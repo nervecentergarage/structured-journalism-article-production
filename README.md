@@ -1,4 +1,6 @@
 # Overview
+The API endpoint is deployed here: https://heroku-article-production.herokuapp.com/
+
 How can AI make it easier to assemble structured journalism articles? Machines are no substitute for the insight and creativity of a trained journalist. But perhaps AI can assist with simple tasks that remove tedium and make production easier. This team will attempt to build an AI capable of assisting a journalist in quickly producing structured journalism content.
 
 # Key Team Skills
