@@ -27,16 +27,33 @@ jobs:
         env:
           DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
           DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
         run: |
-          docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD
+          docker login -u $HEROKU_EMAIL -p $HEROKU_API_KEY registry.heroku.com
 
       # Runs the docker build
       - name: docker build
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
-          docker build ./Code/Backend -t articleproduction/flask_api_1.0.0
+          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
           
       # Push the new image
       - name: docker push
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
-          docker push articleproduction/flask_api_1.0.0
+          docker push registry.heroku.com/$HEROKU_APP_NAME/web
+          
+        # Release the new Heroku conatiner
+      - name: heroku container release
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+          HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
+          HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
+        run: |
+          heroku container:login
+          heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
+        
 
