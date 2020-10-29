@@ -25,7 +25,6 @@ from pymongo import MongoClient
 app = Celery()
 app.config_from_object("celery_settings")
 
-client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
 
 def fetch_news(url_list): 
 
@@ -113,43 +112,21 @@ def scrapeNews():
 
     print("Download started for sports_list:", start_time)
 
+
+    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+
     db = client.news  # DB name
-    collection =  db.news_collection  # DB name
+    #collection =  db.news_collection  # DB name
     #articles = collection.insert_many(news) # Inserting the articles to mongodb
 
     sports_news = fetch_news(sports_list) # Fetching the news
-    collection =  db.sports_collection  # DB name
-    articles = collection.insert_many(sports_news) # Inserting the articles to mongodb
+    sports_collection =  db.sports_collection  # DB name
+    articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
 
-
-    db = client.news  # DB name
-    collection =  db.news_collection  # DB name
     politics_news = fetch_news(politics_list)  # Fetching the news
-    collection = db.politics_collection  # DB name
-    articles = collection.insert_many(politics_news) # Inserting the articles to mongodb
+    politics_collection = db.politics_collection  # DB name
+    articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
 
-    db = client.news  # DB name
-    collection =  db.news_collection  # DB name
-    health_news = fetch_news(health_list)  # Fetching the news
-    collection = db.health_collection  # DB name
-    articles = collection.insert_many(health_news) # Inserting the articles to mongodb
-
-    db = client.news  # DB name
-    collection =  db.news_collection  # DB name
-    finance_news = fetch_news(finance_list)  # Fetching the news
-    collection = db.finance_collection  # DB name
-    articles = collection.insert_many(finance_news) # Inserting the articles to mongodb
-
-    db = client.news  # DB name
-    collection =  db.news_collection  # DB name
-    environment_news = fetch_news(environment_list)  # Fetching the news
-    collection = db.environment_collection  # DB name
-    articles = collection.insert_many(environment_news) # Inserting the articles to mongodb
-
-    db = client.news  # DB name
-    collection =  db.news_collection  # DB name
-    scitech_news = fetch_news(scitech_list) # Fetching the news
-    collection = db.scitech_collection  # DB name
-    articles = collection.insert_many(scitech_news) # Inserting the articles to mongodb
+    
 
     print("Complete")
