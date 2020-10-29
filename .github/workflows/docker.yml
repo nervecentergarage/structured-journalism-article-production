@@ -32,21 +32,21 @@ jobs:
         run: |
           docker login -u $HEROKU_EMAIL -p $HEROKU_API_KEY registry.heroku.com
       # Runs the docker build
-      - name: docker build
+      - name: docker web build
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
         run: |
-          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
+          docker build ./Code/Backend/Docker/web -t registry.heroku.com/$HEROKU_APP_NAME/web
         
       # Push the new image
-      - name: docker push
+      - name: docker web push
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
           docker push registry.heroku.com/$HEROKU_APP_NAME/web
           
         # Release the new Heroku conatiner
-      - name: heroku container release
+      - name: heroku web container release
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
@@ -54,5 +54,33 @@ jobs:
         run: |
           heroku container:login
           heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
+          
+      # Steps for Worker
+    
+        # Runs the docker build
+      - name: docker worker build
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+        run: |
+          docker build ./Code/Backend/Docker/worker -t registry.heroku.com/$HEROKU_APP_NAME/worker
         
+      # Push the new image
+      - name: docker worker push
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
+        run: |
+          docker push registry.heroku.com/$HEROKU_APP_NAME/worker
+          
+        # Release the new Heroku conatiner
+      - name: heroku worker container release
+        env:
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+          HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
+          HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
+        run: |
+          heroku container:login
+          heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} worker
+      
+      
+          
 
