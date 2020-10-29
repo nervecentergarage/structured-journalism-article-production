@@ -23,4 +23,4 @@ RUN apt-get update
 
 RUN pip install -r requirements.txt
 
-CMD celery worker -A tasks.app -l INFO
+CMD [celery, worker, -A, tasks.app, -l, INFO]
