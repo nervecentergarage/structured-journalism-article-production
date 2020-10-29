@@ -7,6 +7,3 @@ The python version used is 3.8.
 
     pip install -r requirements.txt
     python app.py
-
-### Sample application deployed on Heroku
-https://aenc-gtrends.herokuapp.com/
