@@ -19,6 +19,7 @@ import bs4
 import feedparser as fp
 import pandas as pd
 
+from tasks import scrapeNews
 from . import data_blueprint
 
 
@@ -220,3 +221,9 @@ def postData():
     
     return "Completed"
     
+
+@data_blueprint.route('/scrapeURL/', methods=['GET'])
+def scrapeURL():
+    
+    scrapeNews.delay()
+    return "Scrape URL called"
