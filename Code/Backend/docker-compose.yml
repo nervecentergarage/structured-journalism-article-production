@@ -6,3 +6,9 @@ services:
         build:
             context: ./
             dockerfile: Dockerfile
+    flask_api_endpoint_worker:
+        container_name: flask_api_endpoint
+        image: articleproduction/flask_api_1.0.0
+        build:
+            context: ./
+            dockerfile: Dockerfile
