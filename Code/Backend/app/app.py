@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask import Flask
 from flask_restful import Resource, Api
 from project import create_app
+from tasks import hello
 
 app = create_app()
 
