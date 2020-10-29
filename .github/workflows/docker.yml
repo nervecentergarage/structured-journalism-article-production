@@ -36,16 +36,11 @@ jobs:
       - name: docker build
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
-        docker:
-          web: docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
-          worker: docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/worker
-        run:
-          web: 
-            image: web
-          worker:
-            command:
-              - celery worker --app=tasks.py
-            image: worker
+        run: |
+          docker build registry.heroku.com/$HEROKU_APP_NAME/web
+          docker build registry.heroku.com/$HEROKU_APP_NAME/worker
+          celery worker --app=tasks.py
+        
           
       # Push the new image
       - name: docker push
