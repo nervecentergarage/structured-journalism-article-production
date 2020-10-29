@@ -127,6 +127,20 @@ def scrapeNews():
     politics_collection = db.politics_collection  # DB name
     articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
 
+    health_news = fetch_news(health_list)  # Fetching the news
+    health_collection = db.health_collection  # DB name
+    articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
     
+    finance_news = fetch_news(finance_list)  # Fetching the news
+    finance_collection = db.finance_collection  # DB name
+    articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
+
+    environment_news = fetch_news(environment_list)  # Fetching the news
+    environment_collection = db.environment_collection  # DB name
+    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
+
+    scitech_news = fetch_news(scitech_list) # Fetching the news
+    scitech_collection = db.scitech_collection  # DB name
+    articles = scitech_collection.insert_many(scitech_news) # Inserting the articles to mongodb
 
     print("Complete")
