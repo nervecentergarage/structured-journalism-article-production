@@ -19,9 +19,17 @@ from pytz import timezone
 import bs4
 import feedparser as fp
 import pandas as pd
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+mongo = PyMongo()
 
 app = Celery()
 app.config_from_object("celery_settings")
+
+def initialize_extensions(app):
+    CORS(app)
+    app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE"
+    mongo.init_app(app)
 
 def fetch_news(url_list): 
 
@@ -75,6 +83,7 @@ def hello():
 
 @app.task
 def scrapeNews():
+    initialize_extensions(app)
     news_list = ["https://sports.yahoo.com/rss/"]
 
     # define date format
@@ -86,7 +95,7 @@ def scrapeNews():
     loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
-    print("Download started for sports_list:", start_time)
+    print("Download started for news_list:", start_time)
 
     news = fetch_news(news_list) # Fetching the news
 
