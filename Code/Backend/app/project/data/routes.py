@@ -33,14 +33,14 @@ def fetch_news(url_list):
 
 #         feed_url = news_source
         source_name = news_source
-        source_url = news_source
+        #source_url = news_source
         url_feed = news_source
         article_list = []
 
         for article in feed_url.entries:
             article_dict = {}
 
-            date = article.published_parsed
+            #date = article.published_parsed
             artilce_url = article.link
 
             content = Article(artilce_url) #Newspapaer 3k's Article module to read the contents
@@ -123,10 +123,10 @@ def scrapeCategoryNews():
     # define date format
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
     # define eastern timezone
-    eastern = timezone('US/Eastern')
+    #eastern = timezone('US/Eastern')
     # naive datetime
     naive_dt = datetime.now()
-    loc_dt = datetime.now(eastern)
+    #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
     print("Download started for sports_list:", start_time)
@@ -177,14 +177,14 @@ def postData():
         feed_url = fp.parse(news_source)
 
         source_name = news_source
-        source_url = news_source
+        #source_url = news_source
         url_feed = news_source
         article_list = []
 
         for article in feed_url.entries:
             article_dict = {}
 
-            date = article.published_parsed
+            #date = article.published_parsed
             artilce_url = article.link
 
             content = Article(artilce_url) #Newspapaer 3k's Article module to read the contents
@@ -206,10 +206,10 @@ def postData():
 
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
     # define eastern timezone
-    eastern = timezone('US/Eastern')
+    #eastern = timezone('US/Eastern')
     # naive datetime
     naive_dt = datetime.now()
-    loc_dt = datetime.now(eastern)
+    #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
     print("Download started:", start_time)

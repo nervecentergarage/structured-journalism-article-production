@@ -84,18 +84,20 @@ def scrapeNews():
     # define date format
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
     # define eastern timezone
-    eastern = timezone('US/Eastern')
+    #eastern = timezone('US/Eastern')
     # naive datetime
     naive_dt = datetime.now()
-    loc_dt = datetime.now(eastern)
+    #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
     print("Download started for news_list:", start_time)
 
     news = fetch_news(news_list) # Fetching the news
-    
+
+    print(news)
+
     db = client.news  # DB name
     collection =  db.news_collection  # DB name
-    collection.insert_many(news) # Inserting the articles to mongodb
+    articles = collection.insert_many(news) # Inserting the articles to mongodb
 
     print("Complete")
