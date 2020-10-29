@@ -1,8 +1,8 @@
 FROM python:3
 
-ADD ../worker /app
+ADD ./ worker/
 
-WORKDIR /app
+WORKDIR /worker
 
 RUN apt-get update
 
