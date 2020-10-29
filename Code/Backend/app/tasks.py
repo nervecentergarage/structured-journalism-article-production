@@ -19,19 +19,13 @@ from pytz import timezone
 import bs4
 import feedparser as fp
 import pandas as pd
-from flask import Flask
-from flask_pymongo import PyMongo
-from flask_cors import CORS
-mongo = PyMongo()
+
+from pymongo import MongoClient 
 
 app = Celery()
 app.config_from_object("celery_settings")
 
-flask_app = Flask(__name__)
-def initialize_extensions(flask_app):
-    CORS(flask_app)
-    flask_app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE"
-    mongo.init_app(flask_app)
+client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
 
 def fetch_news(url_list): 
 
@@ -85,7 +79,6 @@ def hello():
 
 @app.task
 def scrapeNews():
-    initialize_extensions(flask_app)
     news_list = ["https://sports.yahoo.com/rss/"]
 
     # define date format
@@ -101,7 +94,7 @@ def scrapeNews():
 
     news = fetch_news(news_list) # Fetching the news
 
-    test_news_collection =  mongo.db.test_news_collection  # DB name
+    test_news_collection =  client.test_news_collection  # DB name
     test_news_collection.insert_many(news) # Inserting the articles to mongodb
 
     print("Complete")
