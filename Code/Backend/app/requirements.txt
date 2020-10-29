@@ -11,3 +11,4 @@ newspaper3k
 pandas
 rq
 celery
+redis
