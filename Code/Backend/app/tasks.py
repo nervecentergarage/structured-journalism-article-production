@@ -79,8 +79,29 @@ def hello():
 
 @app.task
 def scrapeNews():
-    news_list = ["https://sports.yahoo.com/rss/"]
+    sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
+               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
+               "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
+               "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]
 
+    politics_list = ["https://www.huffingtonpost.com/section/politics/feed", "http://feeds.foxnews.com/foxnews/politics"]
+
+    health_list = ["https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "http://feeds.foxnews.com/foxnews/health"]
+
+    finance_list = ["https://finance.yahoo.com/news/rssindex","https://www.huffingtonpost.com/section/business/feed",
+                    "http://feeds.nytimes.com/nyt/rss/Business", "http://feeds.bbci.co.uk/news/business/rss.xml",
+                    "https://www.theguardian.com/uk/business/rss", "http://rssfeeds.usatoday.com/UsatodaycomMoney-TopStories",
+                    "https://www.wsj.com/xml/rss/3_7031.xml", "https://www.wsj.com/xml/rss/3_7014.xml"]
+
+    environment_list = ["https://www.huffingtonpost.com/section/green/feed", "http://feeds.foxnews.com/foxnews/scitech",
+                        "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/sci/tech/rss.xml",
+                        "https://www.theguardian.com/uk/environment/rss"]
+
+    scitech_list = ["http://feeds.nytimes.com/nyt/rss/Technology", "http://www.nytimes.com/services/xml/rss/nyt/Science.xml",
+                "http://feeds.foxnews.com/foxnews/tech", "http://feeds.bbci.co.uk/news/technology/rss.xml",
+                "https://www.theguardian.com/uk/technology/rss", "https://www.theguardian.com/science/rss",
+                "https://www.wsj.com/xml/rss/3_7455.xml"]
+    
     # define date format
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
     # define eastern timezone
@@ -90,14 +111,34 @@ def scrapeNews():
     #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
-    print("Download started for news_list:", start_time)
-
-    news = fetch_news(news_list) # Fetching the news
-
-    print(news)
+    print("Download started for sports_list:", start_time)
 
     db = client.news  # DB name
     collection =  db.news_collection  # DB name
-    articles = collection.insert_many(news) # Inserting the articles to mongodb
+    #articles = collection.insert_many(news) # Inserting the articles to mongodb
+
+    sports_news = fetch_news(sports_list) # Fetching the news
+    collection =  db.sports_collection  # DB name
+    articles = collection.insert_many(sports_news) # Inserting the articles to mongodb
+
+    politics_news = fetch_news(politics_list)  # Fetching the news
+    collection = db.politics_collection  # DB name
+    articles = collection.insert_many(politics_news) # Inserting the articles to mongodb
+
+    health_news = fetch_news(health_list)  # Fetching the news
+    collection = db.health_collection  # DB name
+    articles = collection.insert_many(health_news) # Inserting the articles to mongodb
+
+    finance_news = fetch_news(finance_list)  # Fetching the news
+    collection = db.finance_collection  # DB name
+    articles = collection.insert_many(finance_news) # Inserting the articles to mongodb
+
+    environment_news = fetch_news(environment_list)  # Fetching the news
+    collection = db.environment_collection  # DB name
+    articles = collection.insert_many(environment_news) # Inserting the articles to mongodb
+
+    scitech_news = fetch_news(scitech_list) # Fetching the news
+    collection = db.scitech_collection  # DB name
+    articles = collection.insert_many(scitech_news) # Inserting the articles to mongodb
 
     print("Complete")
