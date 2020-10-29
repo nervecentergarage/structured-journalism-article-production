@@ -25,4 +25,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 5000
 
-CMD [celery, -A, tasks.py, worker]
+CMD celery -A tasks.py worker
