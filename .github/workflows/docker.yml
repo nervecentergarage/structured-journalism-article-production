@@ -39,9 +39,7 @@ jobs:
         run: |
           docker build registry.heroku.com/$HEROKU_APP_NAME/web
           docker build registry.heroku.com/$HEROKU_APP_NAME/worker
-          celery worker --app=tasks.py
         
-          
       # Push the new image
       - name: docker push
         env:
