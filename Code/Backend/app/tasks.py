@@ -93,8 +93,9 @@ def scrapeNews():
     print("Download started for news_list:", start_time)
 
     news = fetch_news(news_list) # Fetching the news
-
-    test_news_collection =  client.test_news_collection  # DB name
-    test_news_collection.insert_many(news) # Inserting the articles to mongodb
+    
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
+    collection.insert_many(news) # Inserting the articles to mongodb
 
     print("Complete")
