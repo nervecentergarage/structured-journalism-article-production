@@ -36,7 +36,7 @@ jobs:
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
         run: |
-          docker build ./Code/Backend/ -t registry.heroku.com/$HEROKU_APP_NAME/web
+          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
         
       # Push the new image
       - name: docker web push
@@ -62,7 +62,7 @@ jobs:
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
         run: |
-          docker build ./Code/Backend/app/ -t registry.heroku.com/$HEROKU_APP_NAME/worker
+          docker build ./Code/Backend/app -t registry.heroku.com/$HEROKU_APP_NAME/worker
         
       # Push the new image
       - name: docker worker push
