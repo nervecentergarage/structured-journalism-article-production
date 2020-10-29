@@ -121,22 +121,33 @@ def scrapeNews():
     collection =  db.sports_collection  # DB name
     articles = collection.insert_many(sports_news) # Inserting the articles to mongodb
 
+
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
     politics_news = fetch_news(politics_list)  # Fetching the news
     collection = db.politics_collection  # DB name
     articles = collection.insert_many(politics_news) # Inserting the articles to mongodb
 
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
     health_news = fetch_news(health_list)  # Fetching the news
     collection = db.health_collection  # DB name
     articles = collection.insert_many(health_news) # Inserting the articles to mongodb
 
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
     finance_news = fetch_news(finance_list)  # Fetching the news
     collection = db.finance_collection  # DB name
     articles = collection.insert_many(finance_news) # Inserting the articles to mongodb
 
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
     environment_news = fetch_news(environment_list)  # Fetching the news
     collection = db.environment_collection  # DB name
     articles = collection.insert_many(environment_news) # Inserting the articles to mongodb
 
+    db = client.news  # DB name
+    collection =  db.news_collection  # DB name
     scitech_news = fetch_news(scitech_list) # Fetching the news
     collection = db.scitech_collection  # DB name
     articles = collection.insert_many(scitech_news) # Inserting the articles to mongodb
