@@ -26,10 +26,11 @@ mongo = PyMongo()
 app = Celery()
 app.config_from_object("celery_settings")
 
-def initialize_extensions(app):
-    CORS(app)
-    app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE"
-    mongo.init_app(app)
+flask_app = Flask(__name__)
+def initialize_extensions(flask_app):
+    CORS(flask_app)
+    flask_app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE"
+    mongo.init_app(flask_app)
 
 def fetch_news(url_list): 
 
@@ -83,7 +84,7 @@ def hello():
 
 @app.task
 def scrapeNews():
-    initialize_extensions(app)
+    initialize_extensions(flask_app)
     news_list = ["https://sports.yahoo.com/rss/"]
 
     # define date format
