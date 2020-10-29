@@ -35,15 +35,24 @@ jobs:
       # Runs the docker build
       - name: docker build
         env:
-          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
-        run: |
-          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/worker
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+        docker:
+          web: docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
+          worker: docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/worker
+        run:
+          web: 
+            image: web
+          worker:
+            command:
+              - celery worker --app=tasks.py
+            image: worker
           
       # Push the new image
       - name: docker push
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}  
         run: |
+          docker push registry.heroku.com/$HEROKU_APP_NAME/web
           docker push registry.heroku.com/$HEROKU_APP_NAME/worker
           
         # Release the new Heroku conatiner
@@ -54,6 +63,7 @@ jobs:
           HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
         run: |
           heroku container:login
+          heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
           heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} worker
         
 
