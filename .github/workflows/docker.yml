@@ -36,7 +36,7 @@ jobs:
         env:
           HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
         run: |
-          docker build registry.heroku.com/$HEROKU_APP_NAME/web
+          docker build ./Code/Backend -t registry.heroku.com/$HEROKU_APP_NAME/web
         
       # Push the new image
       - name: docker push
