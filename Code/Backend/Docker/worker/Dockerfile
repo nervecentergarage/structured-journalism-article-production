@@ -1,6 +1,6 @@
 FROM python:3
 
-ADD ../../worker /app
+ADD ../worker /app
 
 WORKDIR /app
 
