@@ -1,5 +1,5 @@
 import os
 
-CELERY_TASK_SERIALIZER = 'json'
-BROKER_URL = os.environ.get('redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
+task_serializer  = 'json'
+broker_url = os.environ.get('redis://localhost:6379/0')
+accept_content  = ['json']
