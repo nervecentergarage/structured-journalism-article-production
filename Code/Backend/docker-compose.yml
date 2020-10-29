@@ -1,14 +1,8 @@
 version: "2"
 services:
     flask_api_endpoint_web:
-        container_name: flask_api_endpoint_web
+        container_name: flask_api_endpoint
         image: articleproduction/flask_api_1.0.0
         build:
             context: ./
-            target: web
-    flask_api_endpoint_worker:
-        container_name: flask_api_endpoint_worker
-        image: articleproduction/flask_api_1.0.0
-        build:
-            context: ./
-            target: worker
+            dockerfile: Dockerfile
