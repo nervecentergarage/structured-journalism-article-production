@@ -19,15 +19,15 @@ from pytz import timezone
 import bs4
 import feedparser as fp
 import pandas as pd
+import nltk
 
 from pymongo import MongoClient 
 
 app = Celery()
 app.config_from_object("celery_settings")
-
+nltk.download('punkt')
 
 def fetch_news(url_list): 
-
     all_news = []
 
     for news_source in url_list:
@@ -74,7 +74,7 @@ def fetch_news(url_list):
 
 @app.task
 def hello():
-    print("hello")
+    return "hello from worker"
 
 @app.task
 def scrapeNews():

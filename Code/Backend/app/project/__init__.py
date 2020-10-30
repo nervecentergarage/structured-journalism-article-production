@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-
+import nltk
 mongo = PyMongo()
 
 
@@ -11,6 +11,7 @@ def create_app():
     app = Flask(__name__)
     initialize_extensions(app)
     register_blueprints(app)
+    nltk.download('punkt')
     return app
 
 
