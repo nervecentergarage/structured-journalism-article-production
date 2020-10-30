@@ -26,18 +26,18 @@ from . import data_blueprint
 @data_blueprint.route('/getData/', methods=['GET'])
 def getData():
 
-    news_collection = mongo.db.testData #Replace testData to actual DB
+    news_collection = mongo.db.environment_collection #Replace testData to actual DB
     output = []
     try:
-        news_articles = loads(dumps(news_collection.find({"topic": "General"}))) # make topic passable
+        news_articles = loads(dumps(news_collection.find({"title": "Hurricane Zeta Leaves Death And Destruction In Its Wake"}))) # make topic passable
         
         for article in news_articles:
 
             # structure schema here
             output.append({
                 'title': article['title'],
-                'author': article['author'],
-                'body': article['body']
+                'summary': article['summary'],
+                'source_name': article['source_name']
             })
         if len(output) == 0:
             output = {'code': 2, "error": "User not found"}

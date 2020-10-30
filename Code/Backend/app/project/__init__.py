@@ -17,7 +17,7 @@ def create_app():
 
 def initialize_extensions(app):
     CORS(app)
-    app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE"
+    app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/news?ssl=true&ssl_cert_reqs=CERT_NONE"
     mongo.init_app(app)
 
 

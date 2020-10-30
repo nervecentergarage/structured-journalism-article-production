@@ -5,5 +5,5 @@ from tasks import hello
 
 @home_blueprint.route('/', methods=['GET'])
 def home():
-
-    return hello.delay()
+    hello.delay()
+    return 'Hello'
