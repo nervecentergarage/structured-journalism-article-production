@@ -77,6 +77,31 @@ def hello():
     return "hello from worker"
 
 @app.task
+def scrapeEnv():
+    environment_list = ["https://www.huffingtonpost.com/section/green/feed", "http://feeds.foxnews.com/foxnews/scitech",
+                        "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/sci/tech/rss.xml",
+                        "https://www.theguardian.com/uk/environment/rss"]
+    
+    # define date format
+    fmt = '%Y-%m-%dT-%H-%M%Z%z'
+    # naive datetime
+    naive_dt = datetime.now()
+    start_time = naive_dt.strftime(fmt)
+
+    print("Download started for environment_list:", start_time)
+
+
+    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+
+    db = client.news  # DB name
+
+    environment_news = fetch_news(environment_list)  # Fetching the news
+    environment_collection = db.environment_collection  # DB name
+    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
+
+    print("Scraping for Environment News Completed")
+
+@app.task
 def scrapeNews():
     sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
                "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
@@ -103,11 +128,8 @@ def scrapeNews():
     
     # define date format
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
-    # define eastern timezone
-    #eastern = timezone('US/Eastern')
     # naive datetime
     naive_dt = datetime.now()
-    #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
     print("Download started for sports_list:", start_time)
@@ -116,8 +138,6 @@ def scrapeNews():
     client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
 
     db = client.news  # DB name
-    #collection =  db.news_collection  # DB name
-    #articles = collection.insert_many(news) # Inserting the articles to mongodb
 
     sports_news = fetch_news(sports_list) # Fetching the news
     sports_collection =  db.sports_collection  # DB name

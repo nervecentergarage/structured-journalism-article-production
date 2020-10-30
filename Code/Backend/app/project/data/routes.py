@@ -20,6 +20,7 @@ import feedparser as fp
 import pandas as pd
 
 from tasks import scrapeNews
+from tasks import scrapeEnv
 from . import data_blueprint
 
 
@@ -48,6 +49,17 @@ def getData():
 
     return output
 
+@data_blueprint.route('/scrapeURL/', methods=['GET'])
+def scrapeURL():
+    
+    scrapeNews.delay()
+    return "Scrape URL called"
+
+@data_blueprint.route('/scrapeEnv/', methods=['GET'])
+def scrapeTest():
+
+    scrapeEnv.delay()
+    return "ScrapeEnv URL called"
 
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
@@ -61,7 +73,6 @@ def postData():
         feed_url = fp.parse(news_source)
 
         source_name = news_source
-        #source_url = news_source
         url_feed = news_source
         article_list = []
 
@@ -89,11 +100,7 @@ def postData():
         all_news.extend(article_list)
 
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
-    # define eastern timezone
-    #eastern = timezone('US/Eastern')
-    # naive datetime
     naive_dt = datetime.now()
-    #loc_dt = datetime.now(eastern)
     start_time = naive_dt.strftime(fmt)
 
     print("Download started:", start_time)
@@ -106,8 +113,3 @@ def postData():
     return "Completed"
     
 
-@data_blueprint.route('/scrapeURL/', methods=['GET'])
-def scrapeURL():
-    
-    scrapeNews.delay()
-    return "Scrape URL called"
