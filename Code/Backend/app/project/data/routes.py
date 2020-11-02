@@ -26,9 +26,10 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
 
 @data_blueprint.route('/getData/', methods=['GET'])
-def getData():
+def getData(request = request):
+    requested_collection = request.args.get("collection")
 
-    news_collection = mongo.db.environment_collection #Replace testData to actual DB
+    news_collection = mongo.db[requested_collection] #Replace testData to actual DB
     output = []
     try:
         news_articles = loads(dumps(news_collection.find({"title": "Hurricane Zeta Leaves Death And Destruction In Its Wake"}))) # make topic passable
