@@ -44,6 +44,8 @@ def getData():
                 'article': article['article'],
                 'body': article['body'],
                 'summary': article['summary'],
+                'sentiment_score': article['sentiment_score'],
+                'sentiment_type': article['sentiment_type'],
             })
         if len(output) == 0:
             output = {'code': 2, "error": "User not found"}
@@ -99,7 +101,7 @@ def postData():
 
             # Updating all the information to a dictionary
 
-            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords})
+            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "sentiment_score": content.sentiment_score, "sentiment_type": content.sentiment_type})
             article_list.append(article_dict)
 
         all_news.extend(article_list)
