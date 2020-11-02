@@ -22,7 +22,8 @@ import pandas as pd
 from tasks import scrapeNews
 from tasks import scrapeEnv
 from . import data_blueprint
-
+from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
+sia = SIA()
 
 @data_blueprint.route('/getData/', methods=['GET'])
 def getData():
@@ -38,7 +39,11 @@ def getData():
             output.append({
                 'title': article['title'],
                 'summary': article['summary'],
-                'source_name': article['source_name']
+                'source_name': article['source_name'],
+                'author': article['author'],
+                'article': article['article'],
+                'body': article['body'],
+                'summary': article['summary'],
             })
         if len(output) == 0:
             output = {'code': 2, "error": "User not found"}
