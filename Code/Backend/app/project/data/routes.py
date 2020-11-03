@@ -32,7 +32,7 @@ def getData(request = request):
     news_collection = mongo.db[requested_collection] #Replace testData to actual DB
     output = []
     try:
-        news_articles = loads(dumps(news_collection.find({"title": "Hurricane Zeta Leaves Death And Destruction In Its Wake"}))) # make topic passable
+        news_articles = loads(dumps(news_collection.find())) # make topic passable
         
         for article in news_articles:
 
@@ -43,8 +43,6 @@ def getData(request = request):
                 'source_name': article['source_name'],
                 'author': article['author'],
                 'article': article['article'],
-                'body': article['body'],
-                'summary': article['summary'],
                 'sentiment_score': article['sentiment_score'],
                 'sentiment_type': article['sentiment_type'],
             })
