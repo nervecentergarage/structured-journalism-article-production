@@ -19,8 +19,8 @@ import bs4
 import feedparser as fp
 import pandas as pd
 
-from tasks import scrapeNews
-from tasks import scrapeEnv
+from tasks import scrape_news
+from tasks import extract_snippets
 from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
@@ -58,14 +58,14 @@ def getData(request = request):
 @data_blueprint.route('/scrapeURL/', methods=['GET'])
 def scrapeURL():
     
-    scrapeNews.delay()
+    scrape_news.delay()
     return "Scrape URL called"
 
-@data_blueprint.route('/scrapeEnv/', methods=['GET'])
-def scrapeTest():
-
-    scrapeEnv.delay()
-    return "ScrapeEnv URL called"
+@data_blueprint.route('/extractSnippet/', methods=['GET'])
+def extractSnippet():
+    
+    extract_snippets.delay()
+    return "Extract snippets called"
 
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
