@@ -42,7 +42,7 @@ from pymongo import MongoClient
 
 app = Celery()
 app.config_from_object("celery_settings")
-
+app.control.rate_limit('app.scrape_news', '10/m')
 np.random.seed(2018)
 
 nltk.download('punkt')
