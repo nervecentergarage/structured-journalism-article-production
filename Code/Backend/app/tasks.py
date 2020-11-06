@@ -1,4 +1,3 @@
-from celery import Celery
 from flask import render_template
 from flask import request
 from bson.json_util import dumps, RELAXED_JSON_OPTIONS
@@ -6,7 +5,7 @@ from bson.objectid import ObjectId
 import json
 from json import loads
 from bson import json_util
-from project import mongo
+#from project import mongo
 from flask import jsonify
 from functools import wraps
 import re
@@ -20,7 +19,23 @@ import bs4
 import feedparser as fp
 import pandas as pd
 import nltk
-
+import warnings
+import gensim
+import numpy as np
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
+from gensim.utils import simple_preprocess
+from nltk.stem.porter import *
+from gensim import corpora, models
+from nltk import tokenize
+from collections import defaultdict, Counter
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+import locale
+from pprint import pprint
+from mpl_toolkits.mplot3d import Axes3D
 from pymongo import MongoClient 
 
 app = Celery()
