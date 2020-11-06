@@ -20,7 +20,7 @@ import feedparser as fp
 import pandas as pd
 
 from tasks import scrape_news
-#from tasks import extract_snippets
+from tasks import extract_snippets
 from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
@@ -61,11 +61,11 @@ def scrapeURL():
     scrape_news.delay()
     return "Scrape URL called"
 
-#@data_blueprint.route('/extractSnippet/', methods=['GET'])
-#def extractSnippet():
+@data_blueprint.route('/extractSnippet/', methods=['GET'])
+def extractSnippet():
     
-    #extract_snippets.delay()
-    #return "Extract snippets called"
+    extract_snippets.delay()
+    return "Extract snippets called"
 
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
@@ -102,7 +102,7 @@ def postData():
             # Adding the sentiment score and sentiment type functionality
             sentiment_score = sia.polarity_scores(content.text)
             sentiment_type = max(sentiment_score, key=sentiment_score.get)
-            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
+            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "sentiment_score": content.sentiment_score, "sentiment_type": content.sentiment_type})
             article_list.append(article_dict)
 
         all_news.extend(article_list)
@@ -120,4 +120,3 @@ def postData():
     
     return "Completed"
     
-
