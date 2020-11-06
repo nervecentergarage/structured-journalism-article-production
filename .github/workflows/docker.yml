@@ -6,9 +6,9 @@ name: Build docker container for article production
 # events but only for the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [ efficiency_test ]
   pull_request:
-    branches: [ main ]
+    branches: [ efficiency_test ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
