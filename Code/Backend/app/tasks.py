@@ -102,7 +102,7 @@ def scrapeEnv():
     print("Scraping for Environment News Completed")
 
 @app.task
-def scrapeNews():
+def scrape_news():
     sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
                "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
                "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
