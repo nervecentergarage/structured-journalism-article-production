@@ -58,6 +58,12 @@ s = SentimentIntensityAnalyzer()
 def fetch_news(url_list, category, collection): 
     all_news = []
 
+    #get the latest article id in the collection. set as 1 if not found
+    try:
+        article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
+    except:
+        article_id = 1
+
     for news_source in url_list:
 
         feed_url = fp.parse(news_source)
@@ -90,13 +96,11 @@ def fetch_news(url_list, category, collection):
 
             # Updating all the information to a dictionary
 
-            try:
-                article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
-            except:
-                article_id = 1
-
             article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords, "category": category})
-            article = collection.insert_one(article_dict)
+            article_list.append(article_dict)
+            article_id += 1
+
+        all_news.extend(article_list)
 
     return all_news
 
@@ -279,22 +283,28 @@ def scrape_news():
     db = client.news  # DB name
 
     sports_collection =  db.sports_collection  # DB name
-    fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    sports_news = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
 
     politics_collection = db.politics_collection  # DB name
-    fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
 
     health_collection = db.health_collection  # DB name  
-    fetch_news(health_list, "health", health_collection)  # Fetching the news
+    health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
     
     finance_collection = db.finance_collection  # DB name
-    fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
 
     environment_collection = db.environment_collection  # DB name
-    fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
 
     scitech_collection = db.scitech_collection  # DB name
-    fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    articles = scitech_collection.insert_many(scitech_news) # Inserting the articles to mongodb
 
     print("Scraping complete")
 
