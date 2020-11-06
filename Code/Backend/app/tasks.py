@@ -59,11 +59,12 @@ def fetch_news(url_list, category, collection):
     all_news = []
 
     #get the latest article id in the collection. set as 1 if not found
-    try:
-        article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
-    except:
-        article_id = 1
+    #try:
+        #article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
+    #except:
+        #article_id = 1
 
+    article_id = 1
     for news_source in url_list:
 
         feed_url = fp.parse(news_source)
@@ -98,7 +99,7 @@ def fetch_news(url_list, category, collection):
 
             article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords, "category": category})
             article_list.append(article_dict)
-            article_id += 1
+            #article_id += 1
 
         all_news.extend(article_list)
 
