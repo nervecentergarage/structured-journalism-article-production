@@ -287,24 +287,24 @@ def scrape_news():
     articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
 
     politics_collection = db.politics_collection  # DB name
-    politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
-    articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
+    #politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    #articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
 
     health_collection = db.health_collection  # DB name  
-    health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
-    articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
+    #health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    #articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
     
     finance_collection = db.finance_collection  # DB name
-    finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
-    articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
+    #finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    #articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
 
     environment_collection = db.environment_collection  # DB name
-    environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
-    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
+    #environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    #articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
 
     scitech_collection = db.scitech_collection  # DB name
-    scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
-    articles = scitech_collection.insert_many(scitech_news) # Inserting the articles to mongodb
+    #scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    #articles = scitech_collection.insert_many(scitech_news) # Inserting the articles to mongodb
 
     print("Scraping complete")
 
