@@ -60,7 +60,7 @@ def fetch_news(url_list, category, collection):
 
     #get the latest article id in the collection. set as 1 if not found
     #try:
-        article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
+    #article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
     #except:
     article_id = 1
 
