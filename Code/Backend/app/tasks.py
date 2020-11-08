@@ -252,6 +252,7 @@ def scrape_news():
                "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
                "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]
 
+    '''
     politics_list = ["https://www.huffingtonpost.com/section/politics/feed", "http://feeds.foxnews.com/foxnews/politics"]
 
     health_list = ["https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "http://feeds.foxnews.com/foxnews/health"]
@@ -269,6 +270,7 @@ def scrape_news():
                 "http://feeds.foxnews.com/foxnews/tech", "http://feeds.bbci.co.uk/news/technology/rss.xml",
                 "https://www.theguardian.com/uk/technology/rss", "https://www.theguardian.com/science/rss",
                 "https://www.wsj.com/xml/rss/3_7455.xml"]
+    '''
     
     # define date format
     fmt = '%Y-%m-%dT-%H-%M%Z%z'
@@ -286,25 +288,25 @@ def scrape_news():
     sports_news = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
     articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
 
-    politics_collection = db.politics_collection  # DB name
-    politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
-    articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
+    #politics_collection = db.politics_collection  # DB name
+    #politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    #articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
 
-    health_collection = db.health_collection  # DB name  
-    health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
-    articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
+    #health_collection = db.health_collection  # DB name  
+    #health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    #articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
     
-    finance_collection = db.finance_collection  # DB name
-    finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
-    articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
+    #finance_collection = db.finance_collection  # DB name
+    #finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    #articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
 
-    environment_collection = db.environment_collection  # DB name
-    environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
-    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
+    #environment_collection = db.environment_collection  # DB name
+    #environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    #articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
 
-    scitech_collection = db.scitech_collection  # DB name
-    scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
-    articles = scitech_collection.insert_many(scitech_news) # Inserting the articles to mongodb
+    #scitech_collection = db.scitech_collection  # DB name
+    #scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    #articles = scitech_collection.insert_many(scietech_news) # Inserting the articles to mongodb
 
     print("Scraping complete")
 
