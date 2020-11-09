@@ -61,7 +61,6 @@ def getData(request = request):
 def scrapeURL():
     
     scrape_news.delay()
-    time.sleep(10)
     extract_snippets.delay()
     return "Scraped News and Extracted Snippets"
 
