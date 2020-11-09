@@ -71,7 +71,7 @@ def scrapeSnip():
     return "Scraped Snip called"
 
 @data_blueprint.route('/scrapesniploop/', methods=['GET'])
-def scrapeSnip():
+def scrapeSnipLoop():
     scrape_snip_loop.delay()
     return "Scraped Snip Loop called"
 
