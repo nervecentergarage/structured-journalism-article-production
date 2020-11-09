@@ -396,7 +396,8 @@ def scrape_snip_latest_news():
     client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
 
     db = client.news  # DB name
-
+    snippet_collection = db.snippet_collection 
+    
     start_article = 0
     end_article = 0
 
