@@ -320,25 +320,41 @@ def extract_snippets():
 
     snippet_collection = db.snippet_collection 
 
-    news_collections = []
-
+    print("Extracting sports snippets...")
     sports_collection =  db.sports_collection  # DB name
+    sports_data = list(sports_collection.find())
+    sports_snippets = get_topic_json(sports_data)
+    snippet_collection.insert_many(sports_snippets)
+
+    print("Extracting politics snippets...")
     politics_collection =  db.politics_collection  # DB name
+    politics_data = list(politics_collection.find())
+    politics_snippets = get_topic_json(politics_data)
+    snippet_collection.insert_many(politics_snippets)
+
+    print("Extracting health snippets...")
     health_collection =  db.health_collection  # DB name
+    health_data = list(health_collection.find())
+    health_snippets = get_topic_json(health_data)
+    snippet_collection.insert_many(health_snippets)
+
+    print("Extracting finance snippets...")
     finance_collection =  db.finance_collection  # DB name
+    finance_data = list(finance_collection.find())
+    finance_snippets = get_topic_json(finance_data)
+    snippet_collection.insert_many(finance_snippets)
+
+    print("Extracting environment snippets...")
     environment_collection = db.environment_collection  # DB name
+    environment_data = list(environment_collection.find())
+    environment_snippets = get_topic_json(environment_data)
+    snippet_collection.insert_many(environment_snippets)
+
+    print("Extracting scitech snippets...")
     scitech_collection = db.scitech_collection  # DB name
-
-    news_collections.extend([sports_collection, politics_collection, health_collection, finance_collection, environment_collection, scitech_collection])
-
-    n = 1
-    for collection in news_collections:
-        print("Extracting", str(n) + "/6 snippets...")
-        data = list(collection.find())
-        snippets = get_topic_json(data)
-        snippet_collection.insert_many(snippets)
-        print("Completed", str(n) + "/6 extraction")
-        n += 1
+    scitech_data = list(scitech_collection.find())
+    scitech_snippets = get_topic_json(scitech_data)
+    snippet_collection.insert_many(scitech_snippets)
 
 @app.task
 def scrape_snip():
