@@ -334,3 +334,101 @@ def extract_snippets():
         snippet_collection.insert_many(snippets)
         print("Completed", collection, "extraction")
 
+@app.task
+def scrape_snip():
+    print("Starting Scrape and Snip Task")
+    sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
+               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
+               "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
+               "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]
+
+    politics_list = ["https://www.huffingtonpost.com/section/politics/feed", "http://feeds.foxnews.com/foxnews/politics"]
+
+    health_list = ["https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "http://feeds.foxnews.com/foxnews/health"]
+
+    finance_list = ["https://finance.yahoo.com/news/rssindex","https://www.huffingtonpost.com/section/business/feed",
+                    "http://feeds.nytimes.com/nyt/rss/Business", "http://feeds.bbci.co.uk/news/business/rss.xml",
+                    "https://www.theguardian.com/uk/business/rss", "http://rssfeeds.usatoday.com/UsatodaycomMoney-TopStories",
+                    "https://www.wsj.com/xml/rss/3_7031.xml", "https://www.wsj.com/xml/rss/3_7014.xml"]
+
+    environment_list = ["https://www.huffingtonpost.com/section/green/feed", "http://feeds.foxnews.com/foxnews/scitech",
+                        "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/sci/tech/rss.xml",
+                        "https://www.theguardian.com/uk/environment/rss"]
+
+    scitech_list = ["http://feeds.nytimes.com/nyt/rss/Technology", "http://www.nytimes.com/services/xml/rss/nyt/Science.xml",
+                "http://feeds.foxnews.com/foxnews/tech", "http://feeds.bbci.co.uk/news/technology/rss.xml",
+                "https://www.theguardian.com/uk/technology/rss", "https://www.theguardian.com/science/rss",
+                "https://www.wsj.com/xml/rss/3_7455.xml"]
+
+    news_collections = []
+    
+    
+    # define date format
+    fmt = '%Y-%m-%dT-%H-%M%Z%z'
+    # naive datetime
+    naive_dt = datetime.now()
+    start_time = naive_dt.strftime(fmt)
+
+    print("Download started for all lists:", start_time)
+
+    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+
+    
+    db = client.news  # DB name
+
+    snippet_collection = db.snippet_collection 
+
+    sports_collection =  db.sports_collection  # DB name
+    sports_news = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
+
+    print("Sports News Scraped")
+
+    politics_collection = db.politics_collection  # DB name
+    politics_news = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    articles = politics_collection.insert_many(politics_news) # Inserting the articles to mongodb
+
+    print("Politics News Scraped")
+
+    health_collection = db.health_collection  # DB name  
+    health_news = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    articles = health_collection.insert_many(health_news) # Inserting the articles to mongodb
+    
+    print("Health News Scraped")
+
+    finance_collection = db.finance_collection  # DB name
+    finance_news = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    articles = finance_collection.insert_many(finance_news) # Inserting the articles to mongodb
+
+    print("Finance News Scraped")
+
+    environment_collection = db.environment_collection  # DB name
+    environment_news = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    articles = environment_collection.insert_many(environment_news) # Inserting the articles to mongodb
+
+    print("Environment News Scraped")
+
+    scitech_collection = db.scitech_collection  # DB name
+    scietech_news = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    articles = scitech_collection.insert_many(scietech_news) # Inserting the articles to mongodb
+
+    print("SciTech News Scraped")
+
+    news_collections.extend([sports_collection, politics_collection, health_collection, finance_collection, environment_collection, scitech_collection])
+
+    for collection in news_collections:
+        print("Extracting", collection, "snippets...")
+        data = list(collection.find())
+        snippets = get_topic_json(data)
+        snippet_collection.insert_many(snippets)
+        print("Completed", collection, "extraction")
+    
+    print("All Collections have been Snipped")
+    return scrape_news()
+
+
+    
+    
+    
+
+    
