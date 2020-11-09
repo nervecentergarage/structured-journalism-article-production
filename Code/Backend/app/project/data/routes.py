@@ -61,7 +61,7 @@ def getData(request = request):
 def scrapeURL():
     
     scrape_news.delay()
-    extract_snippets.delay()
+    #extract_snippets.delay()
     return "Scraped News and Extracted Snippets"
 
 @data_blueprint.route('/scrapesnip/', methods=['GET'])

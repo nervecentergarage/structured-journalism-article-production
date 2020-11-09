@@ -309,6 +309,7 @@ def scrape_news():
     articles = scitech_collection.insert_many(scietech_news) # Inserting the articles to mongodb
 
     print("Scraping complete")
+    extract_snippets()
 
 @app.task
 def extract_snippets():
