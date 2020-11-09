@@ -311,6 +311,7 @@ def scrape_news():
 
 @app.task
 def extract_snippets():
+    print("Starting Extract Snippets Task")
     client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
     db = client.news  # DB name
 
