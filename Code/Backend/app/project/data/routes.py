@@ -22,6 +22,7 @@ import pandas as pd
 from tasks import scrape_news
 from tasks import extract_snippets
 from tasks import scrape_snip
+from tasks import scrape_snip_loop
 
 from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
@@ -68,6 +69,11 @@ def scrapeURL():
 def scrapeSnip():
     scrape_snip.delay()
     return "Scraped Snip called"
+
+@data_blueprint.route('/scrapesniploop/', methods=['GET'])
+def scrapeSnip():
+    scrape_snip_loop.delay()
+    return "Scraped Snip Loop called"
 
 @data_blueprint.route('/extractSnippet/', methods=['GET'])
 def extractSnippet():

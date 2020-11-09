@@ -340,8 +340,14 @@ def scrape_snip():
     scrape_news()
     extract_snippets()
 
+@app.task
+def scrape_snip_loop():
+    scrape_news()
+    extract_snippets()
+    scrape_snip_loop.delay()
 
-    
+
+
     
     
 
