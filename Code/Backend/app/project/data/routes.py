@@ -66,8 +66,7 @@ def scrapeURL():
     return "Scraped News and Extracted Snippets"
 
 @data_blueprint.route('/scrapesnip/', methods=['GET'])
-def scrapeURL():
-    
+def scrapeSnip():
     scrape_snip.delay()
     return "Scraped Snip called"
 
@@ -112,7 +111,7 @@ def postData():
             # Adding the sentiment score and sentiment type functionality
             sentiment_score = sia.polarity_scores(content.text)
             sentiment_type = max(sentiment_score, key=sentiment_score.get)
-            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "sentiment_score": content.sentiment_score, "sentiment_type": content.sentiment_type})
+            article_dict.update({'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
             article_list.append(article_dict)
 
         all_news.extend(article_list)
