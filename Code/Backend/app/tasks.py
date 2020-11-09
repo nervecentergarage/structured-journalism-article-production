@@ -219,8 +219,7 @@ def attach_topics(snippets):
     tfidf = models.TfidfModel(bow_corpus)  # Applying the Tf-IDF Model for the collection of words
     corpus_tfidf = tfidf[bow_corpus]
 
-    lda_model_tfidf = gensim.models.LdaMulticore(corpus_tfidf, num_topics=25, id2word=dicti, passes=2,
-                                                    workers=2)  # Applying the LDA Model for Topic Formations and clustering
+    lda_model_tfidf = gensim.models.ldamodel.LdaModel(corpus_tfidf, num_topics=25, id2word=dicti, passes=2)  # Applying the LDA Model for Topic Formations and clustering
 
     tmp_list = []
     for k in bow_corpus:
