@@ -88,10 +88,10 @@ def fetch_news(url_list, category, collection):
             try: 
                 content.download() #Downloading the News article
                 content.parse()    #Downloading the News article
-                title = content.title #Getting the Title of the article
-                author = content.authors #Getting the Author of the article
-                publish_date = content.publish_date  #Getting the publish date of the article 
-                full_article = content.text #Getting the complete content of the article 
+                #title = content.title #Getting the Title of the article
+                #author = content.authors #Getting the Author of the article
+                #publish_date = content.publish_date  #Getting the publish date of the article 
+                #full_article = content.text #Getting the complete content of the article 
 
                 # Processing the document with NLP tasks to extract 'Summary' and 'Keywords' from the article.
 
@@ -101,7 +101,7 @@ def fetch_news(url_list, category, collection):
 
             # Updating all the information to a dictionary
 
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords, "category": category})
+            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category})
             article_list.append(article_dict)
             latest_article_higher = article_id
             article_id += 1
@@ -397,7 +397,7 @@ def scrape_snip_latest_news():
 
     db = client.news  # DB name
     snippet_collection = db.snippet_collection 
-    
+
     start_article = 0
     end_article = 0
 
