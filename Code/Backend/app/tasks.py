@@ -106,141 +106,140 @@ def fetch_news(url_list, category, collection):
     articles = collection.insert_many(all_news)
     return all_news
 
+def snips(article):
+    new_list = []
+    li = article.split("\n\n")
 
-def get_topic_json(data):  # reads raw data json
-    # Function to split the artilce into paragraphs.
-    def snips(article):
-        new_list = []
-        li = article.split("\n\n")
-
-        for i in range(len(li)):
-            if i >= 1:
-                if len(li[
-                           i].split()) <= 20:  # Checking the length of the para and if less than 20, joining it with the other paragraph.
-                    new_list[-1].join([" ", li[i]])
-                else:
-                    new_list.append(li[i])
+    for i in range(len(li)):
+        if i >= 1:
+            if len(li[
+                        i].split()) <= 20:  # Checking the length of the para and if less than 20, joining it with the other paragraph.
+                new_list[-1].join([" ", li[i]])
             else:
                 new_list.append(li[i])
+        else:
+            new_list.append(li[i])
 
-        return new_list  # returns a list of paragraphs
+    return new_list  # returns a list of paragraphs
 
-    # Function for snippets of the articles
+def snip_json(article_data):
+    snippets = []
+    k = 1
+    for i in article_data:
+        snips_pre = snips(i["article"])
+        for j in snips_pre:
+            final_snip = {}
+            final_snip["type"] = "text"
+            final_snip["snip_id"] = k
+            final_snip["content"] = j
+            # final_snip["snippet_summary"] = summarize_paragraph(j) # Summarizing the snippet
 
-    def snip_json(article_data):
-        snippets = []
-        k = 1
-        for i in article_data:
-            snips_pre = snips(i["article"])
-            for j in snips_pre:
-                final_snip = {}
-                final_snip["type"] = "text"
-                final_snip["snip_id"] = k
-                final_snip["content"] = j
-                # final_snip["snippet_summary"] = summarize_paragraph(j) # Summarizing the snippet
+            final_snip["parent_article"] = i["title"]
+            final_snip["parent_article_url"] = i["article_url"]
+            # final_snip["image_url"]=i["image_url"]
+            final_snip["publish_date"] = i["publish_date"]
+            final_snip["source_url"] = i["source_url"]
+            # final_snip["video_url"]=i['video_url']
+            final_snip["publish_date"] = i["publish_date"]
+            final_snip["author"] = i["author"]
+            final_snip["category"] = i['category']
+            final_snip["snippet_url"] = ""
+            snippets.append(final_snip)
+            k += 1
 
-                final_snip["parent_article"] = i["title"]
-                final_snip["parent_article_url"] = i["article_url"]
-                # final_snip["image_url"]=i["image_url"]
-                final_snip["publish_date"] = i["publish_date"]
-                final_snip["source_url"] = i["source_url"]
-                # final_snip["video_url"]=i['video_url']
-                final_snip["publish_date"] = i["publish_date"]
-                final_snip["author"] = i["author"]
-                final_snip["category"] = i['category']
-                final_snip["snippet_url"] = ""
-                snippets.append(final_snip)
+            if i["image_url"] != "":
+                img_snip = {}
+                img_snip["type"] = "image"
+                img_snip["snippet_url"] = i["image_url"]
+                img_snip["snip_id"] = k
+                img_snip["content"] = i["summary"]
+                img_snip["parent_article"] = i["title"]
+                img_snip["parent_article_url"] = i["article_url"]
+                img_snip["publish_date"] = i["publish_date"]
+                img_snip["source_url"] = i["source_url"]
+                img_snip["publish_date"] = i["publish_date"]
+                img_snip["author"] = i["author"]
+                img_snip["category"] = i['category']
+                snippets.append(img_snip)
                 k += 1
 
-                if i["image_url"] != "":
-                    img_snip = {}
-                    img_snip["type"] = "image"
-                    img_snip["snippet_url"] = i["image_url"]
-                    img_snip["snip_id"] = k
-                    img_snip["content"] = i["summary"]
-                    img_snip["parent_article"] = i["title"]
-                    img_snip["parent_article_url"] = i["article_url"]
-                    img_snip["publish_date"] = i["publish_date"]
-                    img_snip["source_url"] = i["source_url"]
-                    img_snip["publish_date"] = i["publish_date"]
-                    img_snip["author"] = i["author"]
-                    img_snip["category"] = i['category']
-                    snippets.append(img_snip)
-                    k += 1
+            elif i["video_url"] != "":                    
+                vid_snip = {}
+                vid_snip["type"] = "video"
+                vid_snip["snippet_url"] = i["video_url"]
+                vid_snip["snip_id"] = k
+                vid_snip["content"] = i["summary"]
+                vid_snip["parent_article"] = i["title"]
+                vid_snip["parent_article_url"] = i["article_url"]
+                vid_snip["publish_date"] = i["publish_date"]
+                vid_snip["source_url"] = i["source_url"]
+                vid_snip["publish_date"] = i["publish_date"]
+                vid_snip["author"] = i["author"]
+                vid_snip["category"] = i['category']
+                snippets.append(vid_snip)
+                k += 1
 
-                elif i["video_url"] != "":                    
-                    vid_snip = {}
-                    vid_snip["type"] = "video"
-                    vid_snip["snippet_url"] = i["video_url"]
-                    vid_snip["snip_id"] = k
-                    vid_snip["content"] = i["summary"]
-                    vid_snip["parent_article"] = i["title"]
-                    vid_snip["parent_article_url"] = i["article_url"]
-                    vid_snip["publish_date"] = i["publish_date"]
-                    vid_snip["source_url"] = i["source_url"]
-                    vid_snip["publish_date"] = i["publish_date"]
-                    vid_snip["author"] = i["author"]
-                    vid_snip["category"] = i['category']
-                    snippets.append(vid_snip)
-                    k += 1
+    return snippets
 
-        return snippets
+def lemmatize_stemming(text):
+    return stemmer.stem(WordNetLemmatizer().lemmatize(text, pos='v'))
 
+def preprocess(text):
+    stops = set(stopwords.words("english"))
+    stops_rm = set(
+        ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
+            'few', 'hadn', 'isn', "isn't", 'mightn', 'more', 'most', 'mustn', 'no', 'nor', 'not', 'now', 'off', 'out',
+            'over', 'too', 'under', 'until', 'up', 've', 'very'])
+    stops = stops.difference(stops_rm)
+    
+    result = []
+    for token in gensim.utils.simple_preprocess(text):
+        if token not in stops and len(token) >= 2:
+            result.append(lemmatize_stemming(token))
+    return result
+
+def attach_topics(snippets):
+
+    stops = set(stopwords.words("english"))
+    stops_rm = set(
+        ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
+            'few', 'hadn', 'isn', "isn't", 'mightn', 'more', 'most', 'mustn', 'no', 'nor', 'not', 'now', 'off', 'out',
+            'over', 'too', 'under', 'until', 'up', 've', 'very'])
+    stops = stops.difference(stops_rm)
+
+    df = pd.DataFrame(snippets)  # Converting to Dataframe
+    df['processed_text_corpus'] = df['content'].map(preprocess)  # Perfroming the text cleaning
+    df['processed_text'] = df['processed_text_corpus'].apply(lambda x: ' '.join(x))
+    df["sentimentscores"] = df["content"].apply(lambda x: s.polarity_scores(x))
+    df = pd.concat([df.drop(['sentimentscores'], axis=1), df['sentimentscores'].apply(pd.Series)], axis=1)
+    df = df.loc[:, ~df.columns.duplicated()]
+    processed_docs = df.processed_text_corpus.tolist()
+    dicti = gensim.corpora.Dictionary(processed_docs)
+    bow_corpus = [dicti.doc2bow(doc) for doc in processed_docs]  # Collecting the Bag of Words for the dictionary
+    tfidf = models.TfidfModel(bow_corpus)  # Applying the Tf-IDF Model for the collection of words
+    corpus_tfidf = tfidf[bow_corpus]
+
+    lda_model_tfidf = gensim.models.LdaMulticore(corpus_tfidf, num_topics=25, id2word=dicti, passes=2,
+                                                    workers=2)  # Applying the LDA Model for Topic Formations and clustering
+
+    tmp_list = []
+    for k in bow_corpus:
+        tmp_list.append(sorted(lda_model_tfidf[k], key=lambda tup: -1 * tup[1])[0][0])
+
+    se = pd.Series(tmp_list)
+    df['topic'] = se.values  # Defining the topic by the collection of Top Words from the clusters
+
+    final_df = df[
+        ["type", "snip_id", "content", "parent_article", "parent_article_url", "publish_date", "source_url",
+            "author", "category", "snippet_url", "processed_text", "compound", "topic"]]
+    topic_json = json.loads(final_df.to_json(orient="records"))
+
+    return topic_json
+
+def get_topic_json(data):  # reads raw data json
     snippets = snip_json(data)  # Storing the snippets json
 
     stops = set(stopwords.words("english"))  # Defining the Stop words
-
-    # Performing the Text Cleaning
-
-    def lemmatize_stemming(text):
-        return stemmer.stem(WordNetLemmatizer().lemmatize(text, pos='v'))
-
-    def preprocess(text):
-        result = []
-        for token in gensim.utils.simple_preprocess(text):
-            if token not in stops and len(token) >= 2:
-                result.append(lemmatize_stemming(token))
-        return result
-
-    # Topic Clustering of the articles and snippets using LDA Topic Model
-
-    def attach_topics(snippets):
-
-        stops = set(stopwords.words("english"))
-        stops_rm = set(
-            ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
-             'few', 'hadn', 'isn', "isn't", 'mightn', 'more', 'most', 'mustn', 'no', 'nor', 'not', 'now', 'off', 'out',
-             'over', 'too', 'under', 'until', 'up', 've', 'very'])
-        stops = stops.difference(stops_rm)
-
-        df = pd.DataFrame(snippets)  # Converting to Dataframe
-        df['processed_text_corpus'] = df['content'].map(preprocess)  # Perfroming the text cleaning
-        df['processed_text'] = df['processed_text_corpus'].apply(lambda x: ' '.join(x))
-        df["sentimentscores"] = df["content"].apply(lambda x: s.polarity_scores(x))
-        df = pd.concat([df.drop(['sentimentscores'], axis=1), df['sentimentscores'].apply(pd.Series)], axis=1)
-        df = df.loc[:, ~df.columns.duplicated()]
-        processed_docs = df.processed_text_corpus.tolist()
-        dicti = gensim.corpora.Dictionary(processed_docs)
-        bow_corpus = [dicti.doc2bow(doc) for doc in processed_docs]  # Collecting the Bag of Words for the dictionary
-        tfidf = models.TfidfModel(bow_corpus)  # Applying the Tf-IDF Model for the collection of words
-        corpus_tfidf = tfidf[bow_corpus]
-
-        lda_model_tfidf = gensim.models.LdaMulticore(corpus_tfidf, num_topics=25, id2word=dicti, passes=2,
-                                                     workers=2)  # Applying the LDA Model for Topic Formations and clustering
-
-        tmp_list = []
-        for k in bow_corpus:
-            tmp_list.append(sorted(lda_model_tfidf[k], key=lambda tup: -1 * tup[1])[0][0])
-
-        se = pd.Series(tmp_list)
-        df['topic'] = se.values  # Defining the topic by the collection of Top Words from the clusters
-
-        final_df = df[
-            ["type", "snip_id", "content", "parent_article", "parent_article_url", "publish_date", "source_url",
-             "author", "category", "snippet_url", "processed_text", "compound", "topic"]]
-        topic_json = json.loads(final_df.to_json(orient="records"))
-
-        return topic_json
 
     final_data = attach_topics(snippets)
 
