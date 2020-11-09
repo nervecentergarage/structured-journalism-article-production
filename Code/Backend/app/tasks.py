@@ -55,7 +55,7 @@ stemmer = SnowballStemmer('english')
 
 s = SentimentIntensityAnalyzer()
 
-def fetch_news(url_list, category, collection): 
+def fetch_news(url_list): #, category, collection): 
     all_news = []
 
     #get the latest article id in the collection. set as 1 if not found
@@ -96,7 +96,7 @@ def fetch_news(url_list, category, collection):
 
             # Updating all the information to a dictionary
 
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords, "category": category})
+            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords}) #, "category": category})
             article_list.append(article_dict)
             article_id += 1
 
@@ -284,8 +284,9 @@ def scrape_news():
 
     db = client.news  # DB name
 
+    sports_news = fetch_news(sports_list) #, "sports", sports_collection) # Fetching the news
     sports_collection =  db.sports_collection  # DB name
-    sports_news = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    #sports_news = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
     articles = sports_collection.insert_many(sports_news) # Inserting the articles to mongodb
 
     #politics_collection = db.politics_collection  # DB name
