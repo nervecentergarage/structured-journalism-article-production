@@ -58,12 +58,16 @@ s = SentimentIntensityAnalyzer()
 
 def fetch_news(url_list, category, collection): 
     all_news = []
+    latest_article_lower = 0
+    latest_article_higher = 0
 
     #get the latest article id in the collection. set as 1 if not found
     try:
         article_id = int(collection.find().skip(collection.count_documents({}) - 1)[0]['article_id']) + 1
     except:
         article_id = 1
+    
+    latest_article_lower = article_id
 
     for news_source in url_list:
 
@@ -99,12 +103,13 @@ def fetch_news(url_list, category, collection):
 
             article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':publish_date,'title':title, 'article': full_article, 'author':author, "summary": content.summary, "keywords": content.keywords, "category": category})
             article_list.append(article_dict)
+            latest_article_higher = article_id
             article_id += 1
 
         all_news.extend(article_list)
 
     articles = collection.insert_many(all_news)
-    return all_news
+    return latest_article_lower, latest_article_higher
 
 def snips(article):
     new_list = []
@@ -277,7 +282,7 @@ def scrape_news():
     naive_dt = datetime.now()
     start_time = naive_dt.strftime(fmt)
 
-    print("Download started for sports_list:", start_time)
+    print("Download started for all lists:", start_time)
 
     client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
 
@@ -348,7 +353,99 @@ def scrape_snip_loop():
 
 
 
+
+
+@app.task
+def scrape_snip_latest():
+    scrape_snip_latest_news()
     
-    
+def scrape_snip_latest_news():
+    print("Scraping and Snipping latest news...")
+    sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
+               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
+               "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
+               "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]
+
+    politics_list = ["https://www.huffingtonpost.com/section/politics/feed", "http://feeds.foxnews.com/foxnews/politics"]
+
+    health_list = ["https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "http://feeds.foxnews.com/foxnews/health"]
+
+    finance_list = ["https://finance.yahoo.com/news/rssindex","https://www.huffingtonpost.com/section/business/feed",
+                    "http://feeds.nytimes.com/nyt/rss/Business", "http://feeds.bbci.co.uk/news/business/rss.xml",
+                    "https://www.theguardian.com/uk/business/rss", "http://rssfeeds.usatoday.com/UsatodaycomMoney-TopStories",
+                    "https://www.wsj.com/xml/rss/3_7031.xml", "https://www.wsj.com/xml/rss/3_7014.xml"]
+
+    environment_list = ["https://www.huffingtonpost.com/section/green/feed", "http://feeds.foxnews.com/foxnews/scitech",
+                        "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/sci/tech/rss.xml",
+                        "https://www.theguardian.com/uk/environment/rss"]
+
+    scitech_list = ["http://feeds.nytimes.com/nyt/rss/Technology", "http://www.nytimes.com/services/xml/rss/nyt/Science.xml",
+                "http://feeds.foxnews.com/foxnews/tech", "http://feeds.bbci.co.uk/news/technology/rss.xml",
+                "https://www.theguardian.com/uk/technology/rss", "https://www.theguardian.com/science/rss",
+                "https://www.wsj.com/xml/rss/3_7455.xml"]
 
     
+    # define date format
+    fmt = '%Y-%m-%dT-%H-%M%Z%z'
+    # naive datetime
+    naive_dt = datetime.now()
+    start_time = naive_dt.strftime(fmt)
+
+    print("Download started for all lists:", start_time)
+
+    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+
+    db = client.news  # DB name
+
+    start_article = 0
+    end_article = 0
+
+    print("1/6: Collecting sports news")
+    sports_collection =  db.sports_collection  # DB name
+    start_article, end_article = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    print("1/6: Extracting sports news snippets...")
+    data = list(sports_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+
+    print("2/6: Collecting politics news")
+    politics_collection = db.politics_collection  # DB name
+    start_article, end_article = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    print("2/6: Extracting politics news snippets...")
+    data = list(politics_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+    
+    print("3/6: Collecting health news")    
+    health_collection = db.health_collection  # DB name
+    start_article, end_article = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    print("3/6: Extracting health news snippets...")
+    data = list(health_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+
+    print("4/6: Collecting finance news")        
+    finance_collection = db.finance_collection  # DB name
+    start_article, end_article = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    print("4/6: Extracting finance news snippets...")
+    data = list(finance_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+
+    print("5/6: Collecting environment news")        
+    environment_collection = db.environment_collection  # DB name
+    start_article, end_article = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    print("5/6: Extracting environment news snippets...")
+    data = list(environment_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+
+    print("6/6: Collecting scitech news")        
+    scitech_collection = db.scitech_collection  # DB name
+    start_article, end_article = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    print("6/6: Extracting scitech news snippets...")
+    data = list(scitech_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
+    snippets = get_topic_json(data)
+    snippet_collection.insert_many(snippets)
+
+    print("Scraping and Snipping of latest Articles complete")
