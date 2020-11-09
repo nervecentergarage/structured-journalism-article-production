@@ -48,6 +48,7 @@ np.random.seed(2018)
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('vader_lexicon')
+nltk.download('stopwords')
 
 locale.getdefaultlocale()
 
