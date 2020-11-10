@@ -93,16 +93,6 @@ def extractSnippet():
     extract_snippets.delay()
     return "Extract snippets called"
 
-@data_blueprint.route('/testOS/', methods=['POST'])
-def testOS():
-    inputThemes = str(request.data)
-    toReturn = {}
-
-    toReturn["inputTheme"] = inputThemes
-    toReturn["os"] = os.environ.get('TEST_KEY')
-
-    return toReturn
-
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
     request_json = request.get_json()
@@ -157,8 +147,11 @@ def postData():
 
 @data_blueprint.route('/processTheme/', methods=['POST'])
 def processTheme():
-    inputThemes = str(request.data)
-    print(inputThemes)
+    inputThemes = request.data
+    if isinstance(inputThemes, bytes):
+        inputThemes = inputThemes.decode("utf-8")
+    else:
+        inputThemes = str(inputThemes)
 
     topic_ids = get_topics(inputThemes)
     json_results = get_articles_by_topic(topic_ids)
@@ -204,7 +197,7 @@ def get_topics(theme_words):
 def get_articles_by_topic(topic_ids):
     snippet_collection = mongo.db["snippet_collection"] 
 
-    topic_results = []
+    topic_results = {}
     for topic in topic_ids:
         topic_dict = {}
         print("Getting snippets with highest compound for topic", topic)
@@ -230,7 +223,7 @@ def get_articles_by_topic(topic_ids):
         topic_dict["primary_snippets"] = cleaned_snippet_data[:6] #get first 6 snippets from list
         topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
 
-        topic_results.append(topic_dict)
+        topic_results[topic] = topic_dict
 
     return topic_results
 
