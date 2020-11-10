@@ -21,6 +21,7 @@ import feedparser as fp
 import pandas as pd
 import nltk
 import warnings
+warnings.filterwarnings('ignore')
 import gensim
 import numpy as np
 from nltk.stem import WordNetLemmatizer, SnowballStemmer
@@ -37,8 +38,10 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import locale
 from pprint import pprint
 from mpl_toolkits.mplot3d import Axes3D
-
 from pymongo import MongoClient 
+import ssl
+from elasticsearch import Elasticsearch
+from elasticsearch.connection import create_ssl_context
 
 app = Celery()
 app.config_from_object("celery_settings")
@@ -88,13 +91,8 @@ def fetch_news(url_list, category, collection):
             try: 
                 content.download() #Downloading the News article
                 content.parse()    #Downloading the News article
-                #title = content.title #Getting the Title of the article
-                #author = content.authors #Getting the Author of the article
-                #publish_date = content.publish_date  #Getting the publish date of the article 
-                #full_article = content.text #Getting the complete content of the article 
 
                 # Processing the document with NLP tasks to extract 'Summary' and 'Keywords' from the article.
-
                 content.nlp()  
             except:
                 pass
@@ -141,10 +139,8 @@ def snip_json(article_data):
 
             final_snip["parent_article"] = i["title"]
             final_snip["parent_article_url"] = i["article_url"]
-            # final_snip["image_url"]=i["image_url"]
             final_snip["publish_date"] = i["publish_date"]
             final_snip["source_url"] = i["source_url"]
-            # final_snip["video_url"]=i['video_url']
             final_snip["publish_date"] = i["publish_date"]
             final_snip["author"] = i["author"]
             final_snip["category"] = i['category']
@@ -152,37 +148,37 @@ def snip_json(article_data):
             snippets.append(final_snip)
             k += 1
 
-            if i["image_url"] != "":
-                img_snip = {}
-                img_snip["type"] = "image"
-                img_snip["snippet_url"] = i["image_url"]
-                img_snip["snip_id"] = k
-                img_snip["content"] = i["summary"]
-                img_snip["parent_article"] = i["title"]
-                img_snip["parent_article_url"] = i["article_url"]
-                img_snip["publish_date"] = i["publish_date"]
-                img_snip["source_url"] = i["source_url"]
-                img_snip["publish_date"] = i["publish_date"]
-                img_snip["author"] = i["author"]
-                img_snip["category"] = i['category']
-                snippets.append(img_snip)
-                k += 1
+        if i["image_url"] != "":
+            img_snip = {}
+            img_snip["type"] = "image"
+            img_snip["snippet_url"] = i["image_url"]
+            img_snip["snip_id"] = k
+            img_snip["content"] = i["summary"]
+            img_snip["parent_article"] = i["title"]
+            img_snip["parent_article_url"] = i["article_url"]
+            img_snip["publish_date"] = i["publish_date"]
+            img_snip["source_url"] = i["source_url"]
+            img_snip["publish_date"] = i["publish_date"]
+            img_snip["author"] = i["author"]
+            img_snip["category"] = i['category']
+            snippets.append(img_snip)
+            k += 1
 
-            elif i["video_url"] != "":                    
-                vid_snip = {}
-                vid_snip["type"] = "video"
-                vid_snip["snippet_url"] = i["video_url"]
-                vid_snip["snip_id"] = k
-                vid_snip["content"] = i["summary"]
-                vid_snip["parent_article"] = i["title"]
-                vid_snip["parent_article_url"] = i["article_url"]
-                vid_snip["publish_date"] = i["publish_date"]
-                vid_snip["source_url"] = i["source_url"]
-                vid_snip["publish_date"] = i["publish_date"]
-                vid_snip["author"] = i["author"]
-                vid_snip["category"] = i['category']
-                snippets.append(vid_snip)
-                k += 1
+        elif i["video_url"] != "":                    
+            vid_snip = {}
+            vid_snip["type"] = "video"
+            vid_snip["snippet_url"] = i["video_url"]
+            vid_snip["snip_id"] = k
+            vid_snip["content"] = i["summary"]
+            vid_snip["parent_article"] = i["title"]
+            vid_snip["parent_article_url"] = i["article_url"]
+            vid_snip["publish_date"] = i["publish_date"]
+            vid_snip["source_url"] = i["source_url"]
+            vid_snip["publish_date"] = i["publish_date"]
+            vid_snip["author"] = i["author"]
+            vid_snip["category"] = i['category']
+            snippets.append(vid_snip)
+            k += 1
 
     return snippets
 
@@ -204,7 +200,6 @@ def preprocess(text):
     return result
 
 def attach_topics(snippets):
-
     stops = set(stopwords.words("english"))
     stops_rm = set(
         ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
@@ -224,19 +219,52 @@ def attach_topics(snippets):
     tfidf = models.TfidfModel(bow_corpus)  # Applying the Tf-IDF Model for the collection of words
     corpus_tfidf = tfidf[bow_corpus]
 
+    #elastic search connection
+    context = create_ssl_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    es = Elasticsearch(
+    "https://6c7e6efaa2574715a49ff2ea9757622d.eastus2.azure.elastic-cloud.com",
+    http_auth=(os.environ.get('ELASTIC_USER'), os.environ.get('PASS_ELASTIC')),
+    # scheme="https",
+    port=9243,
+    ssl_context = context,
+    )
+
     lda_model_tfidf = gensim.models.ldamodel.LdaModel(corpus_tfidf, num_topics=25, id2word=dicti, passes=2)  # Applying the LDA Model for Topic Formations and clustering
 
-    tmp_list = []
+    topics=lda_model_tfidf.show_topics(num_topics=25,formatted=False, num_words= 50)
+    topic_collection=[]
+    for topic in topics:
+        topic_dict={}
+        topic_dict[str(topic[0])] = [i[0] for i in topic[1]]
+        topic_collection.append(topic_dict)
+        new_data={"topic_id": topic[0],"keywords": ' '.join(topic_dict[str(topic[0])])} 
+        response = es.index(index = 'article_production',id = topic[0],body = new_data) #Storing the topic ID's and the keywords in ElasticSearch
+
+    ## mongo new collection topics
+    data_layer = {
+    "connection_string": "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE",
+    "collection_name": "article_production",
+    "database_name": "article_production"
+    }
+    db_connect = MongoClient(data_layer["connection_string"])
+    database=db_connect[data_layer['database_name']]
+    collection=database[data_layer['collection_name']]
+    collection.insert_many(topic_collection) # Storing the data in the Interim Database
+
+    tmp_list=[]
+    tmp_list1=[]
     for k in bow_corpus:
-        tmp_list.append(sorted(lda_model_tfidf[k], key=lambda tup: -1 * tup[1])[0][0])
-
+        results=lda_model_tfidf[k]
+        tmp_list.append(sorted(results, key=lambda tup: -1*tup[1])[0][0])
+        tmp_list1.append(sorted(results, key=lambda tup: -1*tup[1])[0][1])
     se = pd.Series(tmp_list)
-    df['topic'] = se.values  # Defining the topic by the collection of Top Words from the clusters
-
-    final_df = df[
-        ["type", "snip_id", "content", "parent_article", "parent_article_url", "publish_date", "source_url",
-            "author", "category", "snippet_url", "processed_text", "compound", "topic"]]
-    topic_json = json.loads(final_df.to_json(orient="records"))
+    se1 = pd.Series(tmp_list1)
+    df['topic'] = se.values
+    df["percentage"] = se1.values
+    final_df = df[["type",	"snip_id",	"content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author",	"category",	"snippet_url",		"processed_text",		"compound",	"topic", "percentage"]]
+    topic_json=json.loads(final_df.to_json(orient="records"))
 
     return topic_json
 
@@ -350,10 +378,6 @@ def scrape_snip_loop():
     scrape_news()
     extract_snippets()
     scrape_snip_loop.delay()
-
-
-
-
 
 @app.task
 def scrape_snip_latest():

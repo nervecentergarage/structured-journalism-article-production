@@ -18,12 +18,20 @@ from pytz import timezone
 import bs4
 import feedparser as fp
 import pandas as pd
+import os
 
 from tasks import scrape_news
 from tasks import extract_snippets
 from tasks import scrape_snip
 from tasks import scrape_snip_loop
 from tasks import scrape_snip_latest
+
+import ssl
+from elasticsearch import Elasticsearch
+from elasticsearch.connection import create_ssl_context
+
+import warnings
+warnings.filterwarnings('ignore')
 
 from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
@@ -61,9 +69,7 @@ def getData(request = request):
 
 @data_blueprint.route('/scrapeURL/', methods=['GET'])
 def scrapeURL():
-    
     scrape_news.delay()
-    #extract_snippets.delay()
     return "Scraped News and Extracted Snippets"
 
 @data_blueprint.route('/scrapeSnip/', methods=['GET'])
@@ -140,5 +146,83 @@ def postData():
     print("Complete")
     
     return "Completed"
-    
+
+@data_blueprint.route('/processTheme/', methods=['POST'])
+def processTheme():
+    inputThemes = request.data
+    print(inputThemes)
+
+    topic_ids = get_topics(inputThemes)
+    json_results = get_articles_by_topic(topic_ids)
+
+    print("Process theme called")
+
+    return json_results
+
+def get_topics(theme_words):
+    print("Getting topics")
+    context = create_ssl_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    es = Elasticsearch(
+    "https://6c7e6efaa2574715a49ff2ea9757622d.eastus2.azure.elastic-cloud.com",
+    http_auth=(os.environ.get('ELASTIC_USER'), os.environ.get('PASS_ELASTIC')),
+    # scheme="https",
+    port=9243,
+    ssl_context = context,
+    )
+
+    ##Providing the search query
+    search_param = {
+    "query": {
+        "multi_match": {
+           "query": theme_words,
+           "fields": "keywords"
+           }
+        }
+    }
+      
+    response = es.search(index="article_production", body=search_param) # Response from Elasticsearch
+    results= response["hits"]["hits"] 
+    # Collecting the Topic ID's from the search results.
+
+    topics=[]
+    for i in results:
+      topics.append(i["_id"])
+
+    print("Completed getting topics")
+    return topics
+
+def get_articles_by_topic(topic_ids):
+    snippet_collection = mongo.db["snippet_collection"] 
+
+    topic_results = []
+    for topic in topic_ids:
+        topic_dict = {}
+        print("Getting snippets with highest compound for topic", topic)
+        snippet_data = list(snippet_collection.find({"topic": int(topic)}).sort("percentage", -1).limit(10))
+
+        cleaned_snippet_data = []
+
+        for snippet in snippet_data:
+            temp_dict = {}
+            temp_dict["snippetID"] = snippet["snip_id"]
+            temp_dict["snippet_type"] = snippet["type"]
+            temp_dict["snippet_url"] = snippet["snippet_url"]
+            temp_dict["snippet_description"] = snippet["content"]
+            temp_dict["title"] = snippet["parent_article"]
+            temp_dict["article_url"] = snippet["parent_article_url"]
+            temp_dict["percentage"] = snippet["percentage"]
+
+            cleaned_snippet_data.append(temp_dict)
+
+        topic_dict["topicID"] = topic
+        topic_dict["title"] = snippet_data[0]["parent_article"]
+        topic_dict["summary"] = snippet_data[0]["content"]
+        topic_dict["primary_snippets"] = cleaned_snippet_data[:6] #get first 6 snippets from list
+        topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
+
+        topic_results.append(topic_dict)
+
+    return topic_results
 
