@@ -42,6 +42,7 @@ from pymongo import MongoClient
 import ssl
 from elasticsearch import Elasticsearch
 from elasticsearch.connection import create_ssl_context
+import os
 
 app = Celery()
 app.config_from_object("celery_settings")

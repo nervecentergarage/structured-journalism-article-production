@@ -90,9 +90,17 @@ def scrapeSnipLatest():
 
 @data_blueprint.route('/extractSnippet/', methods=['GET'])
 def extractSnippet():
-    
     extract_snippets.delay()
     return "Extract snippets called"
+
+@data_blueprint.route('/testOS/', methods=['POST'])
+def testOS():
+    inputThemes = request.data
+    print("Input themes:", inputThemes)
+
+    print(os.environ.get('TEST_KEY'))
+
+    return "Test OS called"
 
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
@@ -101,7 +109,6 @@ def postData():
     all_news = []
 
     for news_source in url_list:
-
 
         feed_url = fp.parse(news_source)
 
