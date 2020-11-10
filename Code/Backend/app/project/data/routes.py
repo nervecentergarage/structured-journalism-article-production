@@ -213,7 +213,6 @@ def get_articles_by_topic(topic_ids):
             temp_dict["snippet_description"] = snippet["content"]
             temp_dict["title"] = snippet["parent_article"]
             temp_dict["article_url"] = snippet["parent_article_url"]
-            temp_dict["percentage"] = snippet["percentage"]
 
             cleaned_snippet_data.append(temp_dict)
 
