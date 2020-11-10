@@ -95,7 +95,7 @@ def extractSnippet():
 
 @data_blueprint.route('/testOS/', methods=['POST'])
 def testOS():
-    inputThemes = request.data
+    inputThemes = str(request.data)
     toReturn = {}
 
     toReturn["inputTheme"] = inputThemes
@@ -157,7 +157,7 @@ def postData():
 
 @data_blueprint.route('/processTheme/', methods=['POST'])
 def processTheme():
-    inputThemes = request.data
+    inputThemes = str(request.data)
     print(inputThemes)
 
     topic_ids = get_topics(inputThemes)
