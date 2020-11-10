@@ -96,11 +96,10 @@ def extractSnippet():
 @data_blueprint.route('/testOS/', methods=['POST'])
 def testOS():
     inputThemes = request.data
-    print("Input themes:", inputThemes)
+    toReturn = []
 
-    print(os.environ.get('TEST_KEY'))
-
-    return "Test OS called"
+    toReturn.extend([inputThemes, os.environ.get('TEST_KEY')])
+    return toReturn
 
 @data_blueprint.route('/postData/', methods=['POST'])
 def postData():
