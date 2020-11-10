@@ -207,7 +207,8 @@ def get_articles_by_topic(topic_ids):
 
         for snippet in snippet_data:
             temp_dict = {}
-            temp_dict["snippetID"] = snippet["snip_id"]
+            stringSnippetID = "snippet-"+ str(snippet["snip_id"])
+            temp_dict["snippetID"] = stringSnippetID
             temp_dict["snippet_type"] = snippet["type"]
             temp_dict["snippet_url"] = snippet["snippet_url"]
             temp_dict["snippet_description"] = snippet["content"]
