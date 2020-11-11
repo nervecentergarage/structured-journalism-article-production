@@ -76,20 +76,19 @@ def fetch_news(url_list, category, collection):
     for news_source in url_list:
 
         feed_url = fp.parse(news_source)
-
-        source_name = news_source
-        source_url = news_source
-        url_feed = news_source
+        paper = newspaper.build(news_source)
+        source_name = paper.brand
+        #source_url = news_source
+        #url_feed = news_source
         article_list = []
 
         for article in feed_url.entries:
             article_dict = {}
-
-            date = article.published_parsed
-            artilce_url = article.link
-
-            content = Article(artilce_url) #Newspapaer 3k's Article module to read the contents
+            
             try: 
+                date = article.published_parsed
+                artilce_url = article.link
+                content = Article(artilce_url) #Newspapaer 3k's Article module to read the contents
                 content.download() #Downloading the News article
                 content.parse()    #Downloading the News article
 
@@ -97,10 +96,15 @@ def fetch_news(url_list, category, collection):
                 content.nlp()  
             except:
                 pass
+            
+
+            if content.publish_date != None:
+                publish_date = content.publish_date
+            else:
+                publish_date = ""
 
             # Updating all the information to a dictionary
-
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': url_feed, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date':content.publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category})
+            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category})
             article_list.append(article_dict)
             latest_article_higher = article_id
             article_id += 1
