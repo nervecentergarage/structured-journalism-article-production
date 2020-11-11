@@ -74,10 +74,14 @@ def fetch_news(url_list, category, collection):
     latest_article_lower = article_id
 
     for news_source in url_list:
-
+        
         feed_url = fp.parse(news_source)
         paper = newspaper.build(news_source)
+        
+        print("paper", paper)
         source_name = paper.brand
+        print("source_name", source_name)
+        
         #source_url = news_source
         #url_feed = news_source
         article_list = []
@@ -391,7 +395,7 @@ def scrape_snip_latest():
 def scrape_snip_latest_news():
     print("Scraping and Snipping latest news...")
     sports_list = ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
-               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
+               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml",
                "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
                "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]
 
