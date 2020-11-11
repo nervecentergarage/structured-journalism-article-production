@@ -37,6 +37,10 @@ from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
 
+@data_blueprint.route('/hello/', methods=['GET'])
+def helloWorld():
+    #scrape_snip_latest.delay()
+    return "Hello World"
 
 @data_blueprint.route('/scrapeSnipLatest/', methods=['GET'])
 def scrapeSnipLatest():
