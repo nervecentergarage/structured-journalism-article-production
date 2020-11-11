@@ -43,6 +43,7 @@ import ssl
 from elasticsearch import Elasticsearch
 from elasticsearch.connection import create_ssl_context
 import os
+from time import sleep
 
 app = Celery()
 app.config_from_object("celery_settings")
@@ -76,12 +77,13 @@ def fetch_news(url_list, category, collection):
     for news_source in url_list:
         
         feed_url = fp.parse(news_source)
-        paper = newspaper.build(news_source)
+        print("This is before newspaper.build")
+        paper = newspaper.build(news_source, memoize_articles = False)
         
         print("paper", paper)
         source_name = paper.brand
         print("source_name", source_name)
-        
+
         #source_url = news_source
         #url_feed = news_source
         article_list = []
@@ -134,15 +136,19 @@ def snips(article):
 
     return new_list  # returns a list of paragraphs
 
-def snip_json(article_data):
+def snip_json(article_data, snippet_collection):
     snippets = []
-    k = 1
+    snippet_collection
+    try:
+        snippet_id = int(snippet_collection.find().skip(snippet_collection.count_documents({}) - 1)[0]['snip_id']) + 1
+    except:
+        snippet_id = 1
     for i in article_data:
         snips_pre = snips(i["article"])
         for j in snips_pre:
             final_snip = {}
             final_snip["type"] = "text"
-            final_snip["snip_id"] = k
+            final_snip["snip_id"] = snippet_id
             final_snip["content"] = j
             # final_snip["snippet_summary"] = summarize_paragraph(j) # Summarizing the snippet
 
@@ -155,13 +161,13 @@ def snip_json(article_data):
             final_snip["category"] = i['category']
             final_snip["snippet_url"] = ""
             snippets.append(final_snip)
-            k += 1
+            snippet_id += 1
 
         if i["image_url"] != "":
             img_snip = {}
             img_snip["type"] = "image"
             img_snip["snippet_url"] = i["image_url"]
-            img_snip["snip_id"] = k
+            img_snip["snip_id"] = snippet_id
             img_snip["content"] = i["summary"]
             img_snip["parent_article"] = i["title"]
             img_snip["parent_article_url"] = i["article_url"]
@@ -171,13 +177,13 @@ def snip_json(article_data):
             img_snip["author"] = i["author"]
             img_snip["category"] = i['category']
             snippets.append(img_snip)
-            k += 1
+            snippet_id += 1
 
         elif i["video_url"] != "":                    
             vid_snip = {}
             vid_snip["type"] = "video"
             vid_snip["snippet_url"] = i["video_url"]
-            vid_snip["snip_id"] = k
+            vid_snip["snip_id"] = snippet_id
             vid_snip["content"] = i["summary"]
             vid_snip["parent_article"] = i["title"]
             vid_snip["parent_article_url"] = i["article_url"]
@@ -187,7 +193,7 @@ def snip_json(article_data):
             vid_snip["author"] = i["author"]
             vid_snip["category"] = i['category']
             snippets.append(vid_snip)
-            k += 1
+            snippet_id += 1
 
     return snippets
 
@@ -250,12 +256,12 @@ def attach_topics(snippets):
         topic_collection.append(topic_dict)
         new_data={"topic_id": topic[0],"keywords": ' '.join(topic_dict[str(topic[0])])} 
         response = es.index(index = 'article_production',id = topic[0],body = new_data) #Storing the topic ID's and the keywords in ElasticSearch
-
+    
     ## mongo new collection topics
     data_layer = {
-    "connection_string": "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE",
-    "collection_name": "article_production",
-    "database_name": "article_production"
+    "connection_string": os.environ.get('WORKER_MONGO_ARTICLES_DB'),
+    "collection_name": "topic_keyword_collection",
+    "database_name": "Topic_and_Keyword_DB"
     }
     db_connect = MongoClient(data_layer["connection_string"])
     database=db_connect[data_layer['database_name']]
@@ -277,8 +283,8 @@ def attach_topics(snippets):
 
     return topic_json
 
-def get_topic_json(data):  # reads raw data json
-    snippets = snip_json(data)  # Storing the snippets json
+def get_topic_json(data, snippet_collection):  # reads raw data json
+    snippets = snip_json(data, snippet_collection)  # Storing the snippets json
 
     stops = set(stopwords.words("english"))  # Defining the Stop words
 
@@ -321,7 +327,7 @@ def scrape_news():
 
     print("Download started for all lists:", start_time)
 
-    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+    client = MongoClient(os.environ.get('WEB_MONGO_SNIPPET_DB'))
 
     db = client.news  # DB name
 
@@ -354,8 +360,8 @@ def scrape_news():
 @app.task
 def extract_snippets():
     print("Starting Extract Snippets Task")
-    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
-    db = client.news  
+    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
+    db = client.Snippet_DB  
 
     snippet_collection = db.snippet_collection 
 
@@ -373,7 +379,7 @@ def extract_snippets():
     for collection in news_collections:
         print("Extracting", str(n) + "/6 snippets...")
         data = list(collection.find())
-        snippets = get_topic_json(data)
+        snippets = get_topic_json(data, snippet_collection)
         snippet_collection.insert_many(snippets)
         n += 1
 
@@ -424,12 +430,14 @@ def scrape_snip_latest_news():
     naive_dt = datetime.now()
     start_time = naive_dt.strftime(fmt)
 
-    print("Download started for all lists:", start_time)
+    print("Download started for all lists: {}".format(start_time))
 
-    client = MongoClient("mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/devDB?ssl=true&ssl_cert_reqs=CERT_NONE")
+    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
+    db = client.News_Article_DB  # DB name
 
-    db = client.news  # DB name
-    snippet_collection = db.snippet_collection 
+    db_Snippet = client.Snippet_DB
+
+    snippet_collection = db_Snippet.snippet_collection 
 
     start_article = 0
     end_article = 0
@@ -439,7 +447,7 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
     print("1/6: Extracting sports news snippets...")
     data = list(sports_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
 
     print("2/6: Collecting politics news")
@@ -447,7 +455,7 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
     print("2/6: Extracting politics news snippets...")
     data = list(politics_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
     
     print("3/6: Collecting health news")    
@@ -455,7 +463,7 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(health_list, "health", health_collection)  # Fetching the news
     print("3/6: Extracting health news snippets...")
     data = list(health_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
 
     print("4/6: Collecting finance news")        
@@ -463,7 +471,7 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
     print("4/6: Extracting finance news snippets...")
     data = list(finance_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
 
     print("5/6: Collecting environment news")        
@@ -471,7 +479,7 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
     print("5/6: Extracting environment news snippets...")
     data = list(environment_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
 
     print("6/6: Collecting scitech news")        
@@ -479,7 +487,14 @@ def scrape_snip_latest_news():
     start_article, end_article = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
     print("6/6: Extracting scitech news snippets...")
     data = list(scitech_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data)
+    snippets = get_topic_json(data, snippet_collection)
     snippet_collection.insert_many(snippets)
 
     print("Scraping and Snipping of latest Articles complete")
+
+    sleep(60)
+
+    scrape_snip_latest_news()
+
+
+    

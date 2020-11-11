@@ -2,6 +2,7 @@ from flask import Flask
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 import nltk
+import os
 mongo = PyMongo()
 
 
@@ -17,7 +18,7 @@ def create_app():
 
 def initialize_extensions(app):
     CORS(app)
-    app.config['MONGO_URI'] = "mongodb+srv://TestAdmin:admintest@cluster0.toaff.mongodb.net/news?ssl=true&ssl_cert_reqs=CERT_NONE"
+    app.config['MONGO_URI'] = os.environ.get('WEB_MONGO_SNIPPET_DB')
     mongo.init_app(app)
 
 
