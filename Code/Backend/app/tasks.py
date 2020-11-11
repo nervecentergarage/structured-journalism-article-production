@@ -59,9 +59,9 @@ locale.getdefaultlocale()
 
 stemmer = SnowballStemmer('english')
 
-s = SentimentIntensityAnalyzer()
+sia = SentimentIntensityAnalyzer()
 
-def fetch_news(url_list, category, collection): 
+def fetch_news(url_list, category, collection):
     all_news = []
     latest_article_lower = 0
     latest_article_higher = 0
@@ -108,9 +108,16 @@ def fetch_news(url_list, category, collection):
                 publish_date = content.publish_date
             else:
                 publish_date = ""
-
+            sentiment_results = sia.polarity_scores(content.text)
+            sentiment_score = sentiment_results['compound']
+            if -0.2<= sentiment_score <= 0.2:
+                sentiment_type = 'neu'
+            elif sentiment_score > 0.2:
+                sentiment_type = 'pos'
+            else:
+                sentiment_type = 'neg'
             # Updating all the information to a dictionary
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category})
+            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
             article_list.append(article_dict)
             latest_article_higher = article_id
             article_id += 1
@@ -225,7 +232,7 @@ def attach_topics(snippets):
     df = pd.DataFrame(snippets)  # Converting to Dataframe
     df['processed_text_corpus'] = df['content'].map(preprocess)  # Perfroming the text cleaning
     df['processed_text'] = df['processed_text_corpus'].apply(lambda x: ' '.join(x))
-    df["sentimentscores"] = df["content"].apply(lambda x: s.polarity_scores(x))
+    df["sentimentscores"] = df["content"].apply(lambda x: sia.polarity_scores(x))
     df = pd.concat([df.drop(['sentimentscores'], axis=1), df['sentimentscores'].apply(pd.Series)], axis=1)
     df = df.loc[:, ~df.columns.duplicated()]
     processed_docs = df.processed_text_corpus.tolist()
