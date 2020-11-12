@@ -47,6 +47,16 @@ def scrapeSnipLatest():
     scrape_snip_latest.delay()
     return "Scraped Snip Latest called"
 
+@data_blueprint.route('/news/', methods=['GET'])
+def get_by_sentimenttype(request=request):
+    result = []
+    sentiment_type = request.args.get('sentiment_type')
+    for col in mongo.db.list_collection_names():
+        collection = mongo.db[col]
+        result.append(list(collection.find({"sentiment_type": sentiment_type})))
+    return {"news":json.loads(json_util.dumps(result))}
+
+
 @data_blueprint.route('/processTheme/', methods=['POST'])
 def processTheme():
     inputThemes = request.data
