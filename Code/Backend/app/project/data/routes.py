@@ -39,7 +39,6 @@ sia = SIA()
 
 @data_blueprint.route('/hello/', methods=['GET'])
 def helloWorld():
-    #scrape_snip_latest.delay()
     return "Hello World"
 
 @data_blueprint.route('/scrapeSnipLatest/', methods=['GET'])

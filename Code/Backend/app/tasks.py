@@ -396,12 +396,6 @@ def scrape_snip():
     extract_snippets()
 
 @app.task
-def scrape_snip_loop():
-    scrape_news()
-    extract_snippets()
-    scrape_snip_loop.delay()
-
-@app.task
 def scrape_snip_latest():
     scrape_snip_latest_news()
     
@@ -451,55 +445,55 @@ def scrape_snip_latest_news():
 
     print("1/6: Collecting sports news")
     sports_collection =  db.sports_collection  # DB name
-    start_article, end_article = fetch_news(sports_list, "sports", sports_collection) # Fetching the news
+    start_article, end_article = fetch_news(sports_list, "sports", sports_collection) # Fetching the news (Scraping)
     print("1/6: Extracting sports news snippets...")
     data = list(sports_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
 
     print("2/6: Collecting politics news")
     politics_collection = db.politics_collection  # DB name
-    start_article, end_article = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news
+    start_article, end_article = fetch_news(politics_list, "politics", politics_collection)  # Fetching the news (Scraping)
     print("2/6: Extracting politics news snippets...")
     data = list(politics_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
     
     print("3/6: Collecting health news")    
     health_collection = db.health_collection  # DB name
-    start_article, end_article = fetch_news(health_list, "health", health_collection)  # Fetching the news
+    start_article, end_article = fetch_news(health_list, "health", health_collection)  # Fetching the news (Scraping)
     print("3/6: Extracting health news snippets...")
     data = list(health_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
 
     print("4/6: Collecting finance news")        
     finance_collection = db.finance_collection  # DB name
-    start_article, end_article = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news
+    start_article, end_article = fetch_news(finance_list, "finance", finance_collection)  # Fetching the news (Scraping)
     print("4/6: Extracting finance news snippets...")
     data = list(finance_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
 
     print("5/6: Collecting environment news")        
     environment_collection = db.environment_collection  # DB name
-    start_article, end_article = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news
+    start_article, end_article = fetch_news(environment_list, "environment", environment_collection)  # Fetching the news (Scraping)
     print("5/6: Extracting environment news snippets...")
     data = list(environment_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
 
     print("6/6: Collecting scitech news")        
     scitech_collection = db.scitech_collection  # DB name
-    start_article, end_article = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news
+    start_article, end_article = fetch_news(scitech_list, "scitech", scitech_collection) # Fetching the news (Scraping)
     print("6/6: Extracting scitech news snippets...")
     data = list(scitech_collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
-    snippets = get_topic_json(data, snippet_collection)
+    snippets = get_topic_json(data, snippet_collection) #(Snipping)
     snippet_collection.insert_many(snippets)
 
     print("Scraping and Snipping of latest Articles complete")
 
-    sleep(60)
+    sleep(1800)
 
     scrape_snip_latest_news()
 
