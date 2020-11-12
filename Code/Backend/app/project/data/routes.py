@@ -23,7 +23,6 @@ import os
 from tasks import scrape_news
 from tasks import extract_snippets
 from tasks import scrape_snip
-from tasks import scrape_snip_loop
 from tasks import scrape_snip_latest
 
 import ssl
