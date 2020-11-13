@@ -25,8 +25,6 @@ jobs:
       # Runs the docker build
       - name: docker login
         env:
-          DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
-          DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
           HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
         run: |
