@@ -362,7 +362,7 @@ def extract_snippets():
 
     n = 1
     for collection in news_collections:
-        print("Extracting", str(n) + "/" +  str(len(news_information)) + " snippets...")
+        print("Extracting", str(n) + "/" +  str(len(news_collections)) + " snippets...")
         data = list(collection.find())
         snippets = get_topic_json(data, snippet_collection)
         snippet_collection.insert_many(snippets)
@@ -379,6 +379,11 @@ def scrape_snip_latest():
     
 def scrape_snip_latest_news():
     print("Scraping and Snipping latest news...")
+
+    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
+    db = client.News_Article_DB  # DB name
+    db_Snippet = client.Snippet_DB
+    snippet_collection = db_Snippet.snippet_collection 
 
     # Dictionary of news categories and their information
     # category: {collection name, news list}
@@ -413,16 +418,9 @@ def scrape_snip_latest_news():
                                                 "https://www.wsj.com/xml/rss/3_7031.xml", "http://feeds.abcnews.com/abcnews/topstories", "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml", 
                                                 "http://rssfeeds.usatoday.com/UsatodaycomNation-TopStories", "https://www.latimes.com/local/rss2.0.xml"]} }
 
-    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
-    db = client.News_Article_DB  # DB name
-
-    db_Snippet = client.Snippet_DB
-
-    snippet_collection = db_Snippet.snippet_collection 
-
     start_article = 0
     end_article = 0
-
+    categories = news_dictionary.keys()
     for c in categories:
         news_information = news_dictionary[c]
 
