@@ -1,49 +1,56 @@
+import re
+import bs4
+import warnings
+import locale
+import os
+import ssl
+import pandas as pd
+
+import time
+from time import sleep
+
 from celery import Celery
-from flask import render_template
-from flask import request
-from bson.json_util import dumps, RELAXED_JSON_OPTIONS
-from bson.objectid import ObjectId
 import json
 from json import loads
-from bson import json_util
-from project import mongo
-from flask import jsonify
-from functools import wraps
-import re
+
 import newspaper
 from newspaper import Article
-import time
-from time import mktime
-from datetime import datetime
-from pytz import timezone
-import bs4
-import feedparser as fp
-import pandas as pd
-import nltk
-import warnings
-warnings.filterwarnings('ignore')
-import gensim
+
+from bson import json_util
+from bson.json_util import dumps, RELAXED_JSON_OPTIONS
+from bson.objectid import ObjectId
+
 import numpy as np
+import feedparser as fp
+
+import nltk
 from nltk.stem import WordNetLemmatizer, SnowballStemmer
-from gensim.utils import simple_preprocess
 from nltk.stem.porter import *
-from gensim import corpora, models
 from nltk import tokenize
-from collections import defaultdict, Counter
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+import gensim
+from gensim import corpora, models
+from gensim.utils import simple_preprocess
+
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-import locale
+
 from pprint import pprint
+
+from collections import defaultdict, Counter
 from mpl_toolkits.mplot3d import Axes3D
-from pymongo import MongoClient 
-import ssl
+
 from elasticsearch import Elasticsearch
 from elasticsearch.connection import create_ssl_context
-import os
-from time import sleep
+
+from pymongo import MongoClient 
+
+
+warnings.filterwarnings('ignore')
+
 
 app = Celery()
 app.config_from_object("celery_settings")
@@ -309,7 +316,7 @@ def scrape_news():
     # category: {collection name, news list}
     news_dictionary = { "sports": {"collection": db.sports_collection, 
                                     "news_list": ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
-                                               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml"
+                                               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml",
                                                "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
                                                "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]},
                         "politics": {"collection": db.politics_collection, 
