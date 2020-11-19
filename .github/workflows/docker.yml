@@ -21,14 +21,13 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: add scheduler remote origin
-        env:
+      - uses: akhileshns/heroku-deploy@v3.6.8
+        with:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
           HEROKU_APP_NAME:  ${{ secrets.HEROKU_SCHEDULER_NAME }}
-        run: |
-          git subtree push -P  https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git Code/Backend/scheduler heroku master
-      
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+          appdir: "Code/Backend/scheduler"
+     
       # Runs the docker build
       - name: docker login
         env:
