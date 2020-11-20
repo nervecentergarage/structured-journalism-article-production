@@ -31,7 +31,7 @@ from elasticsearch.connection import create_ssl_context
 
 import warnings
 warnings.filterwarnings('ignore')
-
+from pymongo import MongoClient 
 from . import data_blueprint
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as SIA
 sia = SIA()
@@ -115,25 +115,37 @@ def get_articles_by_topic(topic_ids):
 
         cleaned_snippet_data = []
 
-        for snippet in snippet_data:
-            temp_dict = {}
-            stringSnippetID = "snippet-"+ str(snippet["snip_id"])
-            temp_dict["snippetID"] = stringSnippetID
-            temp_dict["snippet_type"] = snippet["type"]
-            temp_dict["snippet_url"] = snippet["snippet_url"]
-            temp_dict["snippet_description"] = snippet["content"]
-            temp_dict["title"] = snippet["parent_article"]
-            temp_dict["article_url"] = snippet["parent_article_url"]
+        if(snippet_data != []):
+            for snippet in snippet_data:
+                temp_dict = {}
+                stringSnippetID = "snippet-"+ str(snippet["snip_id"])
+                temp_dict["snippetID"] = stringSnippetID
+                temp_dict["snippet_type"] = snippet["type"]
+                temp_dict["snippet_url"] = snippet["snippet_url"]
+                temp_dict["snippet_description"] = snippet["content"]
+                temp_dict["title"] = snippet["parent_article"]
+                temp_dict["article_url"] = snippet["parent_article_url"]
 
-            cleaned_snippet_data.append(temp_dict)
+                cleaned_snippet_data.append(temp_dict)
 
-        topic_dict["topicID"] = topic
-        topic_dict["title"] = snippet_data[0]["parent_article"]
-        topic_dict["summary"] = snippet_data[0]["content"]
-        topic_dict["primary_snippets"] = cleaned_snippet_data[:6] #get first 6 snippets from list
-        topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
-
-        topic_results[topic] = topic_dict
+            topic_dict["topicID"] = topic
+            topic_dict["title"] = snippet_data[0]["parent_article"]
+            topic_dict["summary"] = snippet_data[0]["content"]
+            topic_dict["primary_snippets"] = cleaned_snippet_data[:6] #get first 6 snippets from list
+            topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
+            topic_dict["tags"] = get_keywords(topic)
+            
+            topic_results[topic] = topic_dict
 
     return topic_results
+    
+def get_keywords(topic_id):
+    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
+    topicDb = client.Topic_and_Keyword_DB
+    topic_keyword_collection = topicDb.topic_keyword_collection
+
+    document = list(topic_keyword_collection.find({ topic_id : { '$exists' : 1 } }))
+    keywords = document[0][topic_id]
+
+    return keywords
 

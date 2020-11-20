@@ -339,12 +339,11 @@ def attach_topics(snippets):
             else:
                 filtered_snippets.append(req)
         
-        print("FILTERED", filtered_snippets)
+
         if(filtered_snippets != []):
             df=pd.DataFrame(filtered_snippets)
         else:
             return []
-        print("DF", df)
 
 
     else:
@@ -440,7 +439,6 @@ def attach_topics(snippets):
     df["percentage"] = se1.values
     final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author", "category", "snippet_url", "processed_text", "compound", "topic", "percentage"]]
     final_df = final_df.rename(columns={"compound": "Sentiment_Score"})
-    #print(final_df.columns)
     final_df["Sentiment_type"] = final_df["Sentiment_Score"].apply(lambda x : "positive" if x > 0.2 else ("negative" if x<0.2 else "neutral"))
 
     topic_json=json.loads(final_df.to_json(orient="records"))
