@@ -590,7 +590,8 @@ def scrape_snip_latest_news():
         print("Extracting", c, "news snippets...")
         data = list(collection.find({"article_id" : {"$gte":start_article, "$lt":end_article+1}}))
         snippets = get_topic_json(data, snippet_collection) # Snipping
-        snippet_collection.insert_many(snippets)
+        if(snippets != []):
+            snippet_collection.insert_many(snippets)
 
     print("Scraping and Snipping of latest Articles complete")
 
