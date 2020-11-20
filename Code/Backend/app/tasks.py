@@ -410,12 +410,11 @@ def attach_topics(snippets):
 
 
     
-
+    latest_topic_id = 1
     try:
-        latest_topic_id = topic_keyword_collection.find().sort("_id", -1).limit(1)
-        topic_keys = latest_topic_id[0].keys()
+        topic_cursor = topic_keyword_collection.find().sort("_id", -1).limit(1)
+        topic_keys = topic_cursor[0].keys()
 
-        latest_id = 0
         for key in topic_keys:
             if key != "_id":
                 latest_topic_id = int(key)
