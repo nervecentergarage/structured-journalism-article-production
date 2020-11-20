@@ -299,6 +299,7 @@ def attach_topics(snippets):
     collection=database[data_layer['collection_name']]
 
     #Comparing with previous topics
+    append_prev=[]
     if collection.count() != 0: # Check for empty collection
 
         prev_topics=[]
