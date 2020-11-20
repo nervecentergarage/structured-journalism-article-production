@@ -364,7 +364,8 @@ def attach_topics(snippets):
         
         coherence = CoherenceModel(model=lda_model, 
                                    texts=processed_docs,
-                                   dictionary=dicti, coherence='c_v')
+                                   dictionary=dicti, coherence='c_v',
+                                   processes=1)
         coherence_list.append(coherence.get_coherence())
         models_list.append(lda_model)
 
@@ -397,9 +398,9 @@ def attach_topics(snippets):
     se1 = pd.Series(tmp_list1)
     df['topic'] = se.values
     df["percentage"] = se1.values
-    final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author",	"category",	"snippet_url",		"processed_text",		"compound",	"topic", "percentage"]]
+    final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author", "category", "snippet_url", "processed_text", "compound", "topic", "percentage"]]
     final_df = final_df.rename(columns={"compound": "Sentiment_Score"})
-    print(final_df.columns)
+    #print(final_df.columns)
     final_df["Sentiment_type"] = final_df["Sentiment_Score"].apply(lambda x : "positive" if x > 0.2 else ("negative" if x<0.2 else "neutral"))
 
     topic_json=json.loads(final_df.to_json(orient="records"))
