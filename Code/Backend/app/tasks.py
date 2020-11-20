@@ -329,7 +329,7 @@ def attach_topics(snippets):
         for req in snippets:
             request = req["content"]
             result = search(tfidf, vector, request)
-            if result !=-1:
+            if result != (-1, 0):
                 req["topic"]=d.iloc[ result[0] , 0 ]
                 req["percentage"]=result[1]
                 req["Sentiment_Score"]=s.polarity_scores(request)["compound"]
