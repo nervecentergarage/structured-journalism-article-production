@@ -1,72 +1,92 @@
 import re
-import bs4
-import warnings
-import locale
 import os
 import ssl
-import pandas as pd
-
-import time
-from time import sleep
-
-from celery import Celery
+import bs4
 import json
+import time
+import locale
+import warnings
+import pandas as pd
 from json import loads
+from time import sleep
+from celery import Celery
+from pprint import pprint
+from string import punctuation
 
 import newspaper
 from newspaper import Article
-
 from bson import json_util
 from bson.json_util import dumps, RELAXED_JSON_OPTIONS
 from bson.objectid import ObjectId
-
-import numpy as np
 import feedparser as fp
 
-import nltk
-from nltk.stem import WordNetLemmatizer, SnowballStemmer
-from nltk.stem.porter import *
-from nltk import tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 import gensim
 from gensim import corpora, models
+from gensim.models import CoherenceModel
+from gensim.summarization import summarize
 from gensim.utils import simple_preprocess
+import numpy as np
+np.random.seed(2018)
 
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-
-from pprint import pprint
+import nltk
+from nltk import tokenize
+from nltk.stem.porter import *
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 from collections import defaultdict, Counter
-from mpl_toolkits.mplot3d import Axes3D
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from elasticsearch import Elasticsearch
 from elasticsearch.connection import create_ssl_context
-
 from pymongo import MongoClient 
 
-
+locale.getdefaultlocale()
 warnings.filterwarnings('ignore')
-
-
-app = Celery()
-app.config_from_object("celery_settings")
-#app.control.rate_limit('app.scrape_news', '1/m')
-np.random.seed(2018)
 
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('vader_lexicon')
 nltk.download('stopwords')
 
-locale.getdefaultlocale()
-
 stemmer = SnowballStemmer('english')
 
-sia = SentimentIntensityAnalyzer()
+app = Celery()
+app.config_from_object("celery_settings")
+
+s = SentimentIntensityAnalyzer() # New sentiment Analyzer variable
+#sia = SentimentIntensityAnalyzer()
+
+
+# NEW CODE =========================================================
+
+# Initialize the stopwords
+stoplist = stopwords.words('english')
+
+# Defining the stopwords
+
+stopwords_verbs = ['say', 'get', 'go', 'know', 'may', 'need', 'like', 'make', 'see', 'want', 'come', 'take', 'use', 'would', 'can']
+stopwords_other = ['one', 'mr', 'bbc', 'image', 'getty', 'de', 'en', 'caption', 'also', 'copyright', 'something']
+stops_rm = set(['above','against','ain','any','aren','because','below','didn','couldn','doesn','does','down','few','hadn','isn',"isn't",'mightn','more','most','mustn','no','nor','not','now','off','out','over','too','under','until','up','ve','very'])
+
+my_stopwords = stoplist + stopwords_verbs + stopwords_other
+
+stops = set(my_stopwords).difference(stops_rm)
+
+remove_special_character= re.compile('[/(){}\[\]\|@,;]')
+bad_symbols = re.compile('[^0-9a-z #+_]')
+stops.update(list(punctuation)) # Updating with punctuations
+
+# END OF NEW CODE =========================================================
+
+
+def snippet_summarizer(text):
+  summary = summarize(text, ratio=0.3)
+  return summary
 
 def fetch_news(url_list, category, collection):
     all_news = []
@@ -114,7 +134,7 @@ def fetch_news(url_list, category, collection):
                 publish_date = content.publish_date
             else:
                 publish_date = ""
-            sentiment_results = sia.polarity_scores(content.text)
+            sentiment_results = s.polarity_scores(content.text)
             sentiment_score = sentiment_results['compound']
             if -0.2<= sentiment_score <= 0.2:
                 sentiment_type = 'neu'
@@ -123,7 +143,7 @@ def fetch_news(url_list, category, collection):
             else:
                 sentiment_type = 'neg'
             # Updating all the information to a dictionary
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "summary": content.summary, "keywords": content.keywords, "category": category, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
+            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "default_summary": content.summary, "keywords": content.keywords, "category": category, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
             article_list.append(article_dict)
             latest_article_higher = article_id
             article_id += 1
@@ -139,19 +159,16 @@ def snips(article):
 
     for i in range(len(li)):
         if i >= 1:
-            if len(li[
-                        i].split()) <= 20:  # Checking the length of the para and if less than 20, joining it with the other paragraph.
-                new_list[-1].join([" ", li[i]])
+            if len(li[i].split()) <=50:  # NEW CODE
+                new_list[-1] = new_list[-1].join([" ",li[i]]) # NEW CODE
             else:
                 new_list.append(li[i])
         else:
             new_list.append(li[i])
-
     return new_list  # returns a list of paragraphs
 
 def snip_json(article_data, snippet_collection):
     snippets = []
-    snippet_collection
     try:
         snippet_id = int(snippet_collection.find().skip(snippet_collection.count_documents({}) - 1)[0]['snip_id']) + 1
     except:
@@ -163,7 +180,15 @@ def snip_json(article_data, snippet_collection):
             final_snip["type"] = "text"
             final_snip["snip_id"] = snippet_id
             final_snip["content"] = j
-            # final_snip["snippet_summary"] = summarize_paragraph(j) # Summarizing the snippet
+
+            # NEW CODE =============================================
+            try:
+                final_snip["snippet_summary"]=snippet_summarizer(j)
+            except ValueError:
+                final_snip["snippet_summary"]=j
+            final_snip["parent_article_summary"]=i["default_summary"] # "default_summary" new key not found in old implemenation
+            # END OF NEW CODE ======================================
+
 
             final_snip["parent_article"] = i["title"]
             final_snip["parent_article_url"] = i["article_url"]
@@ -181,7 +206,9 @@ def snip_json(article_data, snippet_collection):
             img_snip["type"] = "image"
             img_snip["snippet_url"] = i["image_url"]
             img_snip["snip_id"] = snippet_id
-            img_snip["content"] = i["summary"]
+
+            img_snip["content"] = i["default_summary"] #New code changed this to "defaul_summary"
+
             img_snip["parent_article"] = i["title"]
             img_snip["parent_article_url"] = i["article_url"]
             img_snip["publish_date"] = i["publish_date"]
@@ -197,7 +224,9 @@ def snip_json(article_data, snippet_collection):
             vid_snip["type"] = "video"
             vid_snip["snippet_url"] = i["video_url"]
             vid_snip["snip_id"] = snippet_id
-            vid_snip["content"] = i["summary"]
+
+            vid_snip["content"] = i["default_summary"] #New code changed this to "default_summary"
+
             vid_snip["parent_article"] = i["title"]
             vid_snip["parent_article_url"] = i["article_url"]
             vid_snip["publish_date"] = i["publish_date"]
@@ -214,12 +243,9 @@ def lemmatize_stemming(text):
     return stemmer.stem(WordNetLemmatizer().lemmatize(text, pos='v'))
 
 def preprocess(text):
-    stops = set(stopwords.words("english"))
-    stops_rm = set(
-        ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
-            'few', 'hadn', 'isn', "isn't", 'mightn', 'more', 'most', 'mustn', 'no', 'nor', 'not', 'now', 'off', 'out',
-            'over', 'too', 'under', 'until', 'up', 've', 'very'])
-    stops = stops.difference(stops_rm)
+    text = text.lower() # lowering text
+    text = remove_special_character.sub('', text) # replace any special characters by space in text    
+    text = bad_symbols.sub('', text) # delete symbols which are in bad symbols from text
     
     result = []
     for token in gensim.utils.simple_preprocess(text):
@@ -227,49 +253,20 @@ def preprocess(text):
             result.append(lemmatize_stemming(token))
     return result
 
+# NEW CODE =================================================
+# Defining a Search Function to check the similarity
+def search(tfidf_matrix, model, request):
+    request_transform = model.transform([request])
+    similarity = np.dot(request_transform, np.transpose(tfidf_matrix))
+    x = np.array(similarity.toarray()[0])
+    indices =  np.argmax(x)
+    if x[indices]>0.2: 
+      return indices
+    else:
+      return -1
+# END OF NEW CODE ===========================================
+
 def attach_topics(snippets):
-    stops = set(stopwords.words("english"))
-    stops_rm = set(
-        ['above', 'against', 'ain', 'any', 'aren', 'because', 'below', 'didn', 'couldn', 'doesn', 'does', 'down',
-            'few', 'hadn', 'isn', "isn't", 'mightn', 'more', 'most', 'mustn', 'no', 'nor', 'not', 'now', 'off', 'out',
-            'over', 'too', 'under', 'until', 'up', 've', 'very'])
-    stops = stops.difference(stops_rm)
-
-    df = pd.DataFrame(snippets)  # Converting to Dataframe
-    df['processed_text_corpus'] = df['content'].map(preprocess)  # Perfroming the text cleaning
-    df['processed_text'] = df['processed_text_corpus'].apply(lambda x: ' '.join(x))
-    df["sentimentscores"] = df["content"].apply(lambda x: sia.polarity_scores(x))
-    df = pd.concat([df.drop(['sentimentscores'], axis=1), df['sentimentscores'].apply(pd.Series)], axis=1)
-    df = df.loc[:, ~df.columns.duplicated()]
-    processed_docs = df.processed_text_corpus.tolist()
-    dicti = gensim.corpora.Dictionary(processed_docs)
-    bow_corpus = [dicti.doc2bow(doc) for doc in processed_docs]  # Collecting the Bag of Words for the dictionary
-    tfidf = models.TfidfModel(bow_corpus)  # Applying the Tf-IDF Model for the collection of words
-    corpus_tfidf = tfidf[bow_corpus]
-
-    #elastic search connection
-    context = create_ssl_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-    es = Elasticsearch(
-    "https://6c7e6efaa2574715a49ff2ea9757622d.eastus2.azure.elastic-cloud.com",
-    http_auth=(os.environ.get('ELASTIC_USER'), os.environ.get('PASS_ELASTIC')),
-    # scheme="https",
-    port=9243,
-    ssl_context = context,
-    )
-
-    lda_model_tfidf = gensim.models.ldamodel.LdaModel(corpus_tfidf, num_topics=25, id2word=dicti, passes=2)  # Applying the LDA Model for Topic Formations and clustering
-
-    topics=lda_model_tfidf.show_topics(num_topics=25,formatted=False, num_words= 50)
-    topic_collection=[]
-    for topic in topics:
-        topic_dict={}
-        topic_dict[str(topic[0])] = [i[0] for i in topic[1]]
-        topic_collection.append(topic_dict)
-        new_data={"topic_id": topic[0],"keywords": ' '.join(topic_dict[str(topic[0])])} 
-        response = es.index(index = 'article_production',id = topic[0],body = new_data) #Storing the topic ID's and the keywords in ElasticSearch
-    
     ## mongo new collection topics
     data_layer = {
     "connection_string": os.environ.get('WORKER_MONGO_ARTICLES_DB'),
@@ -279,21 +276,133 @@ def attach_topics(snippets):
     db_connect = MongoClient(data_layer["connection_string"])
     database=db_connect[data_layer['database_name']]
     collection=database[data_layer['collection_name']]
-    collection.insert_many(topic_collection) # Storing the data in the Interim Database
+
+    #Comparing with previous topics
+    if collection.count() != 0: # Check for empty collection
+
+        prev_topics=[]
+        for i in collection.find():
+            keys=list(i.keys())
+            values=list(i.values())
+            prev_topics.append([keys[1]," ".join(values[1])])
+
+        d=pd.DataFrame(prev_topics)
+
+        text_content = d[1]
+        vector = TfidfVectorizer(max_df=0.1,         # drop words that occur in more than X percent of documents
+                                    #min_df=8,      # only use words that appear at least X times
+                                    stop_words=None, # remove stop words
+                                    lowercase=True, # Convert everything to lower case 
+                                    use_idf=True,   # Use idf
+                                    norm=u'l2',     # Normalization
+                                    smooth_idf=True # Prevents divide-by-zero errors
+                                    )
+        tfidf = vector.fit_transform(text_content)
+
+
+        append_prev=[]
+        append_snip_ids=[]
+        filtered_snippets=[]
+
+        for req in snippets:
+            request = req["content"]
+            result = search(tfidf, vector, request)
+            if result !=-1:
+                append_prev.append({"topic_id":d.iloc[ result , 0 ],"snippet":req})
+                append_snip_ids.append(req["snip_id"])
+            else:
+                filtered_snippets.append(req)
+
+        df=pd.DataFrame(filtered_snippets)
+        # i - topicID
+        # j - 
+        # collection.update({ i: j}, {'$push': { req["snip_id"]:request}}) TO DO
+        # collection.update({'24': 24}, {'$push': {"50":"likhil"}}) TO DO
+
+    else:
+        df=pd.DataFrame(snippets)
+
+    df['processed_text_corpus'] = df['content'].map(preprocess)
+    df['processed_text'] = df['processed_text_corpus'].apply(lambda x: ' '.join(x))
+    df["sentimentscores"] = df["content"].apply(lambda x : s.polarity_scores(x))
+    df = pd.concat([df.drop(['sentimentscores'], axis = 1), df['sentimentscores'].apply(pd.Series)], axis = 1)
+    df = df.loc[:,~df.columns.duplicated()]
+    processed_docs=df.processed_text_corpus.tolist()
+    dicti=gensim.corpora.Dictionary(processed_docs)
+    bow_corpus = [dicti.doc2bow(doc) for doc in processed_docs]
+    tfidf = models.TfidfModel(bow_corpus)
+    corpus_tfidf = tfidf[bow_corpus]
+
+    ##elastic
+    context = create_ssl_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    es = Elasticsearch( 
+                        os.environ.get('ELASTIC_API'),
+                        http_auth=(os.environ.get('ELASTIC_USER'), os.environ.get('PASS_ELASTIC')),
+                        # scheme="https",
+                        port=9243,
+                        ssl_context = context,
+                        )
+
+
+    # lda_model_tfidf =  gensim.models.LdaMulticore(corpus_tfidf, num_topics =25 , id2word = dicti, passes = 2, workers = 2)
+    models_list = []
+    coherence_list = []
+    number_topics = []
+    for num_topics in range(5, 30,5):
+        number_topics.append(num_topics)
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus_tfidf,
+                                              id2word=dicti,
+                                              num_topics=num_topics, 
+                                              random_state=100,
+                                              eval_every=10,
+                                              chunksize=2000,
+                                              passes=5,
+                                              per_word_topics=True
+                                              )
+        
+        coherence = CoherenceModel(model=lda_model, 
+                                   texts=processed_docs,
+                                   dictionary=dicti, coherence='c_v')
+        coherence_list.append(coherence.get_coherence())
+        models_list.append(lda_model)
+
+
+    best_coherence=coherence_list.index(max(coherence_list))
+
+    lda_model_tfidf=models_list[best_coherence]
+    topics=lda_model_tfidf.show_topics(num_topics=number_topics[best_coherence],formatted=False, num_words= 50)
+    topic_collection=[]
+    for topic in topics:
+        topic_dict={}
+        topic_dict[str(topic[0])] = [i[0] for i in topic[1]]
+        topic_collection.append(topic_dict)
+        new_data={"topic_id": topic[0],"keywords": ' '.join(topic_dict[str(topic[0])])}
+        response = es.index(index = 'article_production',id = topic[0],body = new_data)
+
+#######
+
+    collection.insert_many(topic_collection)
+
+
 
     tmp_list=[]
     tmp_list1=[]
     for k in bow_corpus:
-        results=lda_model_tfidf[k]
+        results=lda_model_tfidf[k][0]
         tmp_list.append(sorted(results, key=lambda tup: -1*tup[1])[0][0])
         tmp_list1.append(sorted(results, key=lambda tup: -1*tup[1])[0][1])
     se = pd.Series(tmp_list)
     se1 = pd.Series(tmp_list1)
     df['topic'] = se.values
     df["percentage"] = se1.values
-    final_df = df[["type",	"snip_id",	"content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author",	"category",	"snippet_url",		"processed_text",		"compound",	"topic", "percentage"]]
-    topic_json=json.loads(final_df.to_json(orient="records"))
+    final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author",	"category",	"snippet_url",		"processed_text",		"compound",	"topic", "percentage"]]
+    final_df = final_df.rename(columns={"compound": "Sentiment_Score"})
+    print(final_df.columns)
+    final_df["Sentiment_type"] = final_df["Sentiment_Score"].apply(lambda x : "positive" if x > 0.2 else ("negative" if x<0.2 else "neutral"))
 
+    topic_json=json.loads(final_df.to_json(orient="records"))
     return topic_json
 
 def get_topic_json(data, snippet_collection):  # reads raw data json
