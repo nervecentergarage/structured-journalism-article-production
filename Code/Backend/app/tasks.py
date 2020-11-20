@@ -417,7 +417,7 @@ def attach_topics(snippets):
 
         for key in topic_keys:
             if key != "_id":
-                latest_topic_id = int(key)
+                latest_topic_id = int(key) + 1
     except:
         latest_topic_id = 1
 

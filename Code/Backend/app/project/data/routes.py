@@ -134,7 +134,7 @@ def get_articles_by_topic(topic_ids):
             topic_dict["primary_snippets"] = cleaned_snippet_data[:6] #get first 6 snippets from list
             topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
             topic_dict["tags"] = get_keywords(topic)
-            
+
             topic_results[topic] = topic_dict
 
     return topic_results
@@ -145,7 +145,10 @@ def get_keywords(topic_id):
     topic_keyword_collection = topicDb.topic_keyword_collection
 
     document = list(topic_keyword_collection.find({ topic_id : { '$exists' : 1 } }))
-    keywords = document[0][topic_id]
+    if document != []:
+        keywords = document[0][topic_id]
+    else:
+        keywords = []
 
     return keywords
 
