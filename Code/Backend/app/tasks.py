@@ -11,6 +11,7 @@ from json import loads
 from time import sleep
 from celery import Celery
 from pprint import pprint
+from datetime import datetime
 from string import punctuation
 
 import newspaper
@@ -192,7 +193,13 @@ def snip_json(article_data, snippet_collection):
 
             final_snip["parent_article"] = i["title"]
             final_snip["parent_article_url"] = i["article_url"]
-            final_snip["publish_date"] = i["publish_date"]
+
+            ####ADD
+            try:
+                final_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
+            except:
+                final_snip["publish_date"]="none"
+            #######
             final_snip["source_url"] = i["source_url"]
             final_snip["publish_date"] = i["publish_date"]
             final_snip["author"] = i["author"]
@@ -211,7 +218,14 @@ def snip_json(article_data, snippet_collection):
 
             img_snip["parent_article"] = i["title"]
             img_snip["parent_article_url"] = i["article_url"]
-            img_snip["publish_date"] = i["publish_date"]
+
+            ####ADD
+            try:
+                img_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
+            except:
+                img_snip["publish_date"]="none"
+            ###
+
             img_snip["source_url"] = i["source_url"]
             img_snip["publish_date"] = i["publish_date"]
             img_snip["author"] = i["author"]
@@ -229,7 +243,14 @@ def snip_json(article_data, snippet_collection):
 
             vid_snip["parent_article"] = i["title"]
             vid_snip["parent_article_url"] = i["article_url"]
-            vid_snip["publish_date"] = i["publish_date"]
+
+            #ADDD
+            try:
+                vid_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
+            except:
+                vid_snip["publish_date"]="none"
+            ######
+
             vid_snip["source_url"] = i["source_url"]
             vid_snip["publish_date"] = i["publish_date"]
             vid_snip["author"] = i["author"]
@@ -261,9 +282,9 @@ def search(tfidf_matrix, model, request):
     x = np.array(similarity.toarray()[0])
     indices =  np.argmax(x)
     if x[indices]>0.2: 
-      return indices
+      return (indices,x[indices])
     else:
-      return -1
+      return (-1,0)
 # END OF NEW CODE ===========================================
 
 def attach_topics(snippets):
@@ -308,16 +329,17 @@ def attach_topics(snippets):
             request = req["content"]
             result = search(tfidf, vector, request)
             if result !=-1:
-                append_prev.append({"topic_id":d.iloc[ result , 0 ],"snippet":req})
+                areq["topic"]=d.iloc[ result[0] , 0 ]
+                req["percentage"]=result[1]
+                req["Sentiment_Score"]=s.polarity_scores(request)["compound"]
+                req["Sentiment_type"]=("positive" if req["Sentiment_Score"] > 0.2 else ("negative" if req["Sentiment_Score"]<0.2 else "neutral"))
+                append_prev.append(req)
                 append_snip_ids.append(req["snip_id"])
             else:
                 filtered_snippets.append(req)
 
         df=pd.DataFrame(filtered_snippets)
-        # i - topicID
-        # j - 
-        # collection.update({ i: j}, {'$push': { req["snip_id"]:request}}) TO DO
-        # collection.update({'24': 24}, {'$push': {"50":"likhil"}}) TO DO
+
 
     else:
         df=pd.DataFrame(snippets)
@@ -375,12 +397,24 @@ def attach_topics(snippets):
     lda_model_tfidf=models_list[best_coherence]
     topics=lda_model_tfidf.show_topics(num_topics=number_topics[best_coherence],formatted=False, num_words= 50)
     topic_collection=[]
+
+
+    client = MongoClient(os.environ.get('WEB_MONGO_SNIPPET_DB'))
+    db = client.Snippet_DB
+    snippet_collection = db.snippet_collection
+
+    try:
+        latest_topic_id = int(snippet_collection.find().skip(snippet_collection.count_documents({}) - 1)[0]['snip_id']) + 1
+    except:
+        latest_topic_id = 1
+
     for topic in topics:
         topic_dict={}
-        topic_dict[str(topic[0])] = [i[0] for i in topic[1]]
+        topic_dict[str(latest_topic_id)] = [i[0] for i in topic[1]] #Change inside the str "topic[0]" to increment according to highest topic_id found in DB
         topic_collection.append(topic_dict)
-        new_data={"topic_id": topic[0],"keywords": ' '.join(topic_dict[str(topic[0])])}
-        response = es.index(index = 'article_production',id = topic[0],body = new_data)
+        new_data={"topic_id": latest_topic_id,"keywords": ' '.join(topic_dict[str(latest_topic_id)])} #Change "topic_id" to increment according to highest topic_id found in DB
+        response = es.index(index = 'article_production',id = latest_topic_id,body = new_data) #Change id to increment according to highest topic_id found in DB
+        latest_topic_id += 1
 
 #######
 
@@ -404,6 +438,8 @@ def attach_topics(snippets):
     final_df["Sentiment_type"] = final_df["Sentiment_Score"].apply(lambda x : "positive" if x > 0.2 else ("negative" if x<0.2 else "neutral"))
 
     topic_json=json.loads(final_df.to_json(orient="records"))
+
+    topic_json.extend(append_prev)
     return topic_json
 
 def get_topic_json(data, snippet_collection):  # reads raw data json
@@ -551,9 +587,6 @@ def scrape_snip_latest_news():
         snippet_collection.insert_many(snippets)
 
     print("Scraping and Snipping of latest Articles complete")
-    sleep(1800)
-
-    scrape_snip_latest_news()
 
 
     
