@@ -338,8 +338,13 @@ def attach_topics(snippets):
                 append_snip_ids.append(req["snip_id"])
             else:
                 filtered_snippets.append(req)
-
-        df=pd.DataFrame(filtered_snippets)
+        
+        print("FILTERED", filtered_snippets)
+        if(filtered_snippets != []):
+            df=pd.DataFrame(filtered_snippets)
+        else:
+            return []
+        print("DF", df)
 
 
     else:
