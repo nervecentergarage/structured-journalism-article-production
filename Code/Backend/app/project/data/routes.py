@@ -108,6 +108,7 @@ def get_articles_by_topic(topic_ids):
     snippet_collection = mongo.db["snippet_collection"] 
 
     topic_results = {}
+    snippet_data_str_topic = []
     for topic in topic_ids:
         topic_dict = {}
         print("Getting snippets with highest compound for topic", topic)
