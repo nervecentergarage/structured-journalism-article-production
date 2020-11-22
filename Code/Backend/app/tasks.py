@@ -330,7 +330,7 @@ def attach_topics(snippets):
             request = req["content"]
             result = search(tfidf, vector, request)
             if result != (-1, 0):
-                req["topic"]=int(d.iloc[ result[0] , 0 ])
+                req["topic"]=d.iloc[ result[0] , 0 ]
                 req["percentage"]=result[1]
                 req["Sentiment_Score"]=s.polarity_scores(request)["compound"]
                 req["Sentiment_type"]=("positive" if req["Sentiment_Score"] > 0.2 else ("negative" if req["Sentiment_Score"]<0.2 else "neutral"))
@@ -443,7 +443,7 @@ def attach_topics(snippets):
         tmp_list1.append(sorted(results, key=lambda tup: -1*tup[1])[0][1])
     se = pd.Series(tmp_list)
     se1 = pd.Series(tmp_list1)
-    df['topic'] = se.values
+    df['topic'] = int(se.values)
     df["percentage"] = se1.values
     final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author", "category", "snippet_url", "processed_text", "compound", "topic", "percentage"]]
     final_df = final_df.rename(columns={"compound": "Sentiment_Score"})
