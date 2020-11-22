@@ -116,7 +116,7 @@ def get_articles_by_topic(topic_ids):
         missing_snippets = len(snippet_data_int_topic)
 
         if missing_snippets != 0:
-            snippet_data_str_topic = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(0))
+            snippet_data_str_topic = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(missing_snippets))
 
         snippet_data = snippet_data_int_topic + snippet_data_str_topic
         cleaned_snippet_data = []
