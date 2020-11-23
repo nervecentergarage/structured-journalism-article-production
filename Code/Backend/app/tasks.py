@@ -148,9 +148,11 @@ def fetch_news(url_list, category, collection):
                 latest_article_higher = article_id
                 article_id += 1
 
+                articles = collection.insert_one(article_dict)
+
         all_news.extend(article_list)
 
-    articles = collection.insert_many(all_news)
+    #articles = collection.insert_many(all_news)
     return latest_article_lower, latest_article_higher
 
 def snips(article):
