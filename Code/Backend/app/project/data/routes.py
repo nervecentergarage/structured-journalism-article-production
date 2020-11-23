@@ -108,7 +108,16 @@ def get_articles_by_topic(topic_ids):
     for topic in topic_ids:
         topic_dict = {}
         print("Getting snippets with highest compound for topic", topic)
-        snippet_data = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(11))
+        snippet_data_int = list(snippet_collection.find({"topic": int(topic)}).sort("percentage", -1).limit(11))
+        snippet_data_string = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(11))
+        
+        snippet_data = []
+        snippet_data.extend(snippet_data_int)
+        snippet_data.extend(snippet_data_string)
+        
+        snippet_data.sort(key= lambda x:-x['percentage'])
+        snippet_data = snippet_data[:11]
+        
         cleaned_snippet_data = []
 
         if(snippet_data != []):
