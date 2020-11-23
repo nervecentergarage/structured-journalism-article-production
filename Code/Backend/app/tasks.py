@@ -59,11 +59,7 @@ stemmer = SnowballStemmer('english')
 app = Celery()
 app.config_from_object("celery_settings")
 
-s = SentimentIntensityAnalyzer() # New sentiment Analyzer variable
-#sia = SentimentIntensityAnalyzer()
-
-
-# NEW CODE =========================================================
+s = SentimentIntensityAnalyzer()
 
 # Initialize the stopwords
 stoplist = stopwords.words('english')
@@ -81,8 +77,6 @@ stops = set(my_stopwords).difference(stops_rm)
 remove_special_character= re.compile('[/(){}\[\]\|@,;]')
 bad_symbols = re.compile('[^0-9a-z #+_]')
 stops.update(list(punctuation)) # Updating with punctuations
-
-# END OF NEW CODE =========================================================
 
 
 def snippet_summarizer(text):
@@ -143,11 +137,16 @@ def fetch_news(url_list, category, collection):
                 sentiment_type = 'pos'
             else:
                 sentiment_type = 'neg'
-            # Updating all the information to a dictionary
-            article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "default_summary": content.summary, "keywords": content.keywords, "category": category, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
-            article_list.append(article_dict)
-            latest_article_higher = article_id
-            article_id += 1
+            
+            # Determine if content exists in collection already
+            article_count = collection.find({ 'article' : content.text }).count()
+
+            if (article_count == 0):
+                # Updating all the information to a dictionary
+                article_dict.update({'article_id': article_id, 'source_name': source_name, 'source_url': news_source, "article_url": artilce_url, 'image_url': content.top_image,'video_url': content.movies, 'publish_date': publish_date,'title':content.title, 'article': content.text, 'author':content.authors, "default_summary": content.summary, "keywords": content.keywords, "category": category, "sentiment_score": sentiment_score, "sentiment_type": sentiment_type})
+                article_list.append(article_dict)
+                latest_article_higher = article_id
+                article_id += 1
 
         all_news.extend(article_list)
 
@@ -160,8 +159,8 @@ def snips(article):
 
     for i in range(len(li)):
         if i >= 1:
-            if len(li[i].split()) <=50:  # NEW CODE
-                new_list[-1] = new_list[-1].join([" ",li[i]]) # NEW CODE
+            if len(li[i].split()) <=50:
+                new_list[-1] = new_list[-1].join([" ",li[i]])
             else:
                 new_list.append(li[i])
         else:
@@ -181,25 +180,17 @@ def snip_json(article_data, snippet_collection):
             final_snip["type"] = "text"
             final_snip["snip_id"] = snippet_id
             final_snip["content"] = j
-
-            # NEW CODE =============================================
             try:
                 final_snip["snippet_summary"]=snippet_summarizer(j)
             except ValueError:
                 final_snip["snippet_summary"]=j
-            final_snip["parent_article_summary"]=i["default_summary"] # "default_summary" new key not found in old implemenation
-            # END OF NEW CODE ======================================
-
-
+            final_snip["parent_article_summary"]=i["default_summary"]
             final_snip["parent_article"] = i["title"]
             final_snip["parent_article_url"] = i["article_url"]
-
-            ####ADD
             try:
                 final_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
             except:
                 final_snip["publish_date"]="none"
-            #######
             final_snip["source_url"] = i["source_url"]
             final_snip["publish_date"] = i["publish_date"]
             final_snip["author"] = i["author"]
@@ -213,19 +204,13 @@ def snip_json(article_data, snippet_collection):
             img_snip["type"] = "image"
             img_snip["snippet_url"] = i["image_url"]
             img_snip["snip_id"] = snippet_id
-
-            img_snip["content"] = i["default_summary"] #New code changed this to "defaul_summary"
-
+            img_snip["content"] = i["default_summary"]
             img_snip["parent_article"] = i["title"]
             img_snip["parent_article_url"] = i["article_url"]
-
-            ####ADD
             try:
                 img_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
             except:
                 img_snip["publish_date"]="none"
-            ###
-
             img_snip["source_url"] = i["source_url"]
             img_snip["publish_date"] = i["publish_date"]
             img_snip["author"] = i["author"]
@@ -238,19 +223,13 @@ def snip_json(article_data, snippet_collection):
             vid_snip["type"] = "video"
             vid_snip["snippet_url"] = i["video_url"]
             vid_snip["snip_id"] = snippet_id
-
-            vid_snip["content"] = i["default_summary"] #New code changed this to "default_summary"
-
+            vid_snip["content"] = i["default_summary"]
             vid_snip["parent_article"] = i["title"]
             vid_snip["parent_article_url"] = i["article_url"]
-
-            #ADDD
             try:
                 vid_snip["publish_date"]=datetime.fromtimestamp(i["publish_date"]["$date"]//1000).strftime("%m/%d/%Y, %H:%M:%S")
             except:
                 vid_snip["publish_date"]="none"
-            ######
-
             vid_snip["source_url"] = i["source_url"]
             vid_snip["publish_date"] = i["publish_date"]
             vid_snip["author"] = i["author"]
@@ -274,7 +253,6 @@ def preprocess(text):
             result.append(lemmatize_stemming(token))
     return result
 
-# NEW CODE =================================================
 # Defining a Search Function to check the similarity
 def search(tfidf_matrix, model, request):
     request_transform = model.transform([request])
@@ -285,7 +263,6 @@ def search(tfidf_matrix, model, request):
       return (indices,x[indices])
     else:
       return (-1,0)
-# END OF NEW CODE ===========================================
 
 def attach_topics(snippets):
     ## mongo new collection topics
@@ -372,8 +349,6 @@ def attach_topics(snippets):
                         ssl_context = context,
                         )
 
-
-    # lda_model_tfidf =  gensim.models.LdaMulticore(corpus_tfidf, num_topics =25 , id2word = dicti, passes = 2, workers = 2)
     models_list = []
     coherence_list = []
     number_topics = []
@@ -423,17 +398,13 @@ def attach_topics(snippets):
 
     for topic in topics:
         topic_dict={}
-        topic_dict[str(latest_topic_id)] = [i[0] for i in topic[1]] #Change inside the str "topic[0]" to increment according to highest topic_id found in DB
+        topic_dict[str(latest_topic_id)] = [i[0] for i in topic[1]] 
         topic_collection.append(topic_dict)
-        new_data={"topic_id": latest_topic_id,"keywords": ' '.join(topic_dict[str(latest_topic_id)])} #Change "topic_id" to increment according to highest topic_id found in DB
-        response = es.index(index = 'article_production',id = latest_topic_id,body = new_data) #Change id to increment according to highest topic_id found in DB
+        new_data={"topic_id": latest_topic_id,"keywords": ' '.join(topic_dict[str(latest_topic_id)])}
+        response = es.index(index = 'article_production',id = latest_topic_id,body = new_data)
         latest_topic_id += 1
 
-#######
-
     collection.insert_many(topic_collection)
-
-
 
     tmp_list=[]
     tmp_list1=[]
@@ -462,81 +433,6 @@ def get_topic_json(data, snippet_collection):  # reads raw data json
     final_data = attach_topics(snippets)
 
     return final_data
-
-@app.task
-def scrape_news():
-    print("Scraping news...")
-
-    client = MongoClient(os.environ.get('WEB_MONGO_SNIPPET_DB'))
-    db = client.news  # DB name
-
-    # Dictionary of news categories and their information
-    # category: {collection name, news list}
-    news_dictionary = { "sports": {"collection": db.sports_collection, 
-                                    "news_list": ["https://sports.yahoo.com/rss/","https://www.huffingtonpost.com/section/sports/feed",
-                                               "https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml", "http://feeds.bbci.co.uk/sport/rss.xml",
-                                               "http://rss.cnn.com/rss/edition_sport.rss","https://www.theguardian.com/uk/sport/rss",
-                                               "http://rssfeeds.usatoday.com/UsatodaycomSports-TopStories"]},
-                        "politics": {"collection": db.politics_collection, 
-                                    "news_list": ["https://www.huffingtonpost.com/section/politics/feed", "http://feeds.foxnews.com/foxnews/politics"]}, 
-                        "health": {"collection": db.health_collection, 
-                                    "news_list": ["https://rss.nytimes.com/services/xml/rss/nyt/Health.xml", "http://feeds.foxnews.com/foxnews/health"]},
-                        "finance": {"collection": db.finance_collection, 
-                                    "news_list": ["https://finance.yahoo.com/news/rssindex","https://www.huffingtonpost.com/section/business/feed",
-                                                "http://feeds.nytimes.com/nyt/rss/Business", "http://feeds.bbci.co.uk/news/business/rss.xml",
-                                                "https://www.theguardian.com/uk/business/rss", "http://rssfeeds.usatoday.com/UsatodaycomMoney-TopStories",
-                                                "https://www.wsj.com/xml/rss/3_7031.xml", "https://www.wsj.com/xml/rss/3_7014.xml"]}, 
-                        "environment": {"collection": db.environment_collection, 
-                                        "news_list": ["https://www.huffingtonpost.com/section/green/feed", "http://feeds.foxnews.com/foxnews/scitech",
-                                                    "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/sci/tech/rss.xml",
-                                                    "https://www.theguardian.com/uk/environment/rss"]}, 
-                        "scitech": {"collection": db.scitech_collection, 
-                                    "news_list": ["http://feeds.nytimes.com/nyt/rss/Technology", "http://www.nytimes.com/services/xml/rss/nyt/Science.xml",
-                                                "http://feeds.foxnews.com/foxnews/tech", "http://feeds.bbci.co.uk/news/technology/rss.xml",
-                                                "https://www.theguardian.com/uk/technology/rss", "https://www.theguardian.com/science/rss",
-                                                "https://www.wsj.com/xml/rss/3_7455.xml"]}, 
-                        "general": {"collection": db.general_collection, 
-                                    "news_list": ["https://www.yahoo.com/news/rss", "https://www.huffpost.com/section/front-page/feed?x=1", 
-                                                "http://rss.cnn.com/rss/cnn_topstories.rss", "http://www.nytimes.com/services/xml/rss/nyt/HomePage.xml", 
-                                                "http://feeds.foxnews.com/foxnews/latest", "http://www.nbcnews.com/id/3032091/device/rss/rss.xml", 
-                                                "http://www.dailymail.co.uk/home/index.rss", "http://www.washingtontimes.com/rss/headlines/news/", "https://www.theguardian.com/uk/rss", 
-                                                "https://www.wsj.com/xml/rss/3_7031.xml", "http://feeds.abcnews.com/abcnews/topstories", "http://newsrss.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss.xml", 
-                                                "http://rssfeeds.usatoday.com/UsatodaycomNation-TopStories", "https://www.latimes.com/local/rss2.0.xml"]} }
-
-    categories = news_dictionary.keys()
-    
-    for c in categories:
-        news_information = news_dictionary[c]
-
-        print("Collecting", c, "news")
-        fetch_news(news_information["news_list"], c, news_information["collection"]) # Fetch news by passing news list, category, and collection name
-
-    print("Scraping complete")
-
-@app.task
-def extract_snippets():
-    print("Starting Extract Snippets Task")
-    client = MongoClient(os.environ.get('WORKER_MONGO_ARTICLES_DB'))
-    db = client.Snippet_DB  
-
-    snippet_collection = db.snippet_collection 
-
-    news_collections = []
-    news_collections.extend([db.sports_collection, db.politics_collection, db.health_collection, 
-                            db.finance_collection, db.environment_collection, db.scitech_collection, db.general_collection])
-
-    n = 1
-    for collection in news_collections:
-        print("Extracting", str(n) + "/" +  str(len(news_collections)) + " snippets...")
-        data = list(collection.find())
-        snippets = get_topic_json(data, snippet_collection)
-        snippet_collection.insert_many(snippets)
-        n += 1
-
-@app.task
-def scrape_snip():
-    scrape_news()
-    extract_snippets()
 
 @app.task
 def scrape_snip_latest():
