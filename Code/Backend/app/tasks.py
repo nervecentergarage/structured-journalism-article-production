@@ -386,7 +386,7 @@ def attach_topics(snippets):
     topic_keyword_collection = db.topic_keyword_collection
 
 
-    
+    initial_topic = 1
     latest_topic_id = 1
     try:
         topic_cursor = topic_keyword_collection.find().sort("_id", -1).limit(1)
@@ -394,6 +394,7 @@ def attach_topics(snippets):
 
         for key in topic_keys:
             if key != "_id":
+                initial_topic = int(key) + 1
                 latest_topic_id = int(key) + 1
     except:
         latest_topic_id = 1
@@ -412,7 +413,7 @@ def attach_topics(snippets):
     tmp_list1=[]
     for k in bow_corpus:
         results=lda_model_tfidf[k][0]
-        tmp_list.append(sorted(results, key=lambda tup: -1*tup[1])[0][0])
+        tmp_list.append(sorted(results, key=lambda tup: -1*tup[1])[0][0] + initial_topic)
         tmp_list1.append(sorted(results, key=lambda tup: -1*tup[1])[0][1])
     se = pd.Series(tmp_list)
     se1 = pd.Series(tmp_list1)

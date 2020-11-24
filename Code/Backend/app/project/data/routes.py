@@ -108,15 +108,15 @@ def get_articles_by_topic(topic_ids):
     for topic in topic_ids:
         topic_dict = {}
         print("Getting snippets with highest compound for topic", topic)
-        snippet_data_int = list(snippet_collection.find({"topic": int(topic)}).sort("percentage", -1).limit(11))
-        snippet_data_string = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(11))
+        snippet_data_int = list(snippet_collection.find({"topic": int(topic)}).sort("percentage", -1).limit(10))
+        snippet_data_string = list(snippet_collection.find({"topic": topic}).sort("percentage", -1).limit(10))
         
         snippet_data = []
         snippet_data.extend(snippet_data_int)
         snippet_data.extend(snippet_data_string)
         
         snippet_data.sort(key= lambda x:-x['percentage'])
-        snippet_data = snippet_data[:11]
+        snippet_data = snippet_data[:10]
         
         cleaned_snippet_data = []
 
@@ -136,9 +136,10 @@ def get_articles_by_topic(topic_ids):
             topic_dict["topicID"] = topic
             topic_dict["title"] = snippet_data[0]["parent_article"]
             topic_dict["summary"] = snippet_data[0]["content"]
-            topic_dict["primary_snippets"] = cleaned_snippet_data[1:7] #get first 6 snippets excluding the 1st snippet from list
-            if (len(topic_dict["primary_snippets"]) == 6):
-                topic_dict["secondary_snippets"] = cleaned_snippet_data[-4:] #get last 4 snippets from list
+            topic_dict["primary_snippets"] = cleaned_snippet_data[0:6] #get first 6 snippets excluding the 1st snippet from list
+            if (len(snippet_data) > 6):
+                int_to_get = 6 - len(snippet_data)
+                topic_dict["secondary_snippets"] = cleaned_snippet_data[int_to_get:] #get the remaining snippets from list
             topic_dict["tags"] = get_keywords(topic)
 
             topic_results[topic] = topic_dict
