@@ -129,6 +129,12 @@ def get_articles_by_topic(topic_ids):
                 temp_dict["snippet_url"] = snippet["snippet_url"]
                 temp_dict["snippet_description"] = snippet["content"]
                 temp_dict["title"] = snippet["parent_article"]
+                
+                temp_dict["sentiment_score"] = snippet["Sentiment_Score"] #Sentiment Score
+                temp_dict["sentiment_type"] = snippet["Sentiment_type"] #Sentiment Type
+                temp_dict["snippet_summary"] = snippet["snippet_summary"] #Snippet Summary
+                temp_dict["relevance_score"] = snippet["percentage"] #Relevance Score (Importance)
+                
                 temp_dict["article_url"] = snippet["parent_article_url"]
 
                 cleaned_snippet_data.append(temp_dict)

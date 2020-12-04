@@ -80,8 +80,11 @@ stops.update(list(punctuation)) # Updating with punctuations
 
 
 def snippet_summarizer(text):
-  summary = summarize(text, ratio=0.3)
-  return summary
+    summary = summarize(text, ratio=0.3)
+    if(summary == ""):
+        summary = text
+
+    return summary
 
 def fetch_news(url_list, category, collection):
     all_news = []
@@ -184,7 +187,7 @@ def snip_json(article_data, snippet_collection):
             final_snip["content"] = j
             try:
                 final_snip["snippet_summary"]=snippet_summarizer(j)
-            except ValueError:
+            except:
                 final_snip["snippet_summary"]=j
             final_snip["parent_article_summary"]=i["default_summary"]
             final_snip["parent_article"] = i["title"]
@@ -207,6 +210,13 @@ def snip_json(article_data, snippet_collection):
             img_snip["snippet_url"] = i["image_url"]
             img_snip["snip_id"] = snippet_id
             img_snip["content"] = i["default_summary"]
+
+            img_snip["parent_article_summary"]=i["default_summary"]
+            try:
+                img_snip["snippet_summary"]=snippet_summarizer(i["default_summary"])
+            except:
+                img_snip["snippet_summary"]=i["default_summary"]
+
             img_snip["parent_article"] = i["title"]
             img_snip["parent_article_url"] = i["article_url"]
             try:
@@ -226,6 +236,11 @@ def snip_json(article_data, snippet_collection):
             vid_snip["snippet_url"] = i["video_url"]
             vid_snip["snip_id"] = snippet_id
             vid_snip["content"] = i["default_summary"]
+            vid_snip["parent_article_summary"]=i["default_summary"]
+            try:
+                vid_snip["snippet_summary"]=snippet_summarizer(i["default_summary"])
+            except:
+                vid_snip["snippet_summary"]=i["default_summary"]
             vid_snip["parent_article"] = i["title"]
             vid_snip["parent_article_url"] = i["article_url"]
             try:
@@ -419,7 +434,7 @@ def attach_topics(snippets):
     se1 = pd.Series(tmp_list1)
     df['topic'] = se.values
     df["percentage"] = se1.values
-    final_df = df[["type",	"snip_id", "content",	"parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author", "category", "snippet_url", "processed_text", "compound", "topic", "percentage"]]
+    final_df = df[["type",	"snip_id", "content",	"snippet_summary", "parent_article_summary", "parent_article",	"parent_article_url",	"publish_date",	"source_url",	"author", "category", "snippet_url", "processed_text", "compound", "topic", "percentage"]]
     final_df = final_df.rename(columns={"compound": "Sentiment_Score"})
     final_df["Sentiment_type"] = final_df["Sentiment_Score"].apply(lambda x : "positive" if x > 0.2 else ("negative" if x<0.2 else "neutral"))
 
